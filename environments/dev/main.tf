@@ -53,6 +53,15 @@ module "s3" {
   )
 }
 
+module "iam" {
+  source = "../../modules/iam"
+
+  # Required variables
+  environment = var.environment
+  region      = var.region
+  s3_bucket_arn = module.s3.output_bucket_arn
+}
+
 output "vpc_id" {
   description = "The ID of the VPC"
   value       = module.vpc.vpc_id
