@@ -1,19 +1,60 @@
 variable "region" {
   description = "AWS region to create resources in"
   type        = string
-  default     = "us-east-1"
+  default     = "us-west-2"
+
+  validation {
+    condition     = can(regex("^[a-z]{2}-[a-z]+-[0-9]+$", var.region))
+    error_message = "Region must be a valid AWS region format (e.g., us-east-1, eu-west-1)."
+  }
+
+  validation {
+    condition = contains([
+      "us-east-1", "us-east-2", "us-west-1", "us-west-2",
+      "eu-west-1", "eu-west-2", "eu-west-3", "eu-central-1", "eu-north-1",
+      "ap-southeast-1", "ap-southeast-2", "ap-northeast-1", "ap-northeast-2",
+      "ap-south-1", "ca-central-1", "sa-east-1"
+    ], var.region)
+    error_message = "Region must be a valid and commonly used AWS region."
+  }
 }
 
 variable "vpc_cidr_block" {
   description = "CIDR block for VPC"
   type        = string
   default     = "10.0.0.0/16"
+
+  validation {
+    condition     = can(cidrhost(var.vpc_cidr_block, 0))
+    error_message = "VPC CIDR block must be a valid IPv4 CIDR notation."
+  }
+
+  validation {
+    condition     = can(regex("^(10\\.|172\\.(1[6-9]|2[0-9]|3[01])\\.|192\\.168\\.)", var.vpc_cidr_block))
+    error_message = "VPC CIDR block must use private IP address ranges (10.0.0.0/8, 172.16.0.0/12, or 192.168.0.0/16)."
+  }
+
+  validation {
+    condition     = tonumber(split("/", var.vpc_cidr_block)[1]) >= 16 && tonumber(split("/", var.vpc_cidr_block)[1]) <= 28
+    error_message = "VPC CIDR block must have a subnet mask between /16 and /28."
+  }
 }
 
 variable "environment" {
   description = "Deployment Environment"
   type        = string
   default     = "dev"
+
+  # Restrict environment names to three letter strings and one of dev, stg, prd, or tst
+  validation {
+    condition     = contains(["dev", "stg", "prd", "tst"], var.environment)
+    error_message = "Environment must be one of: dev, stg, prd, tst."
+  }
+
+  validation {
+    condition     = can(regex("^[a-z]+$", var.environment))
+    error_message = "Environment must contain only lowercase letters."
+  }
 }
 
 variable "enable_dns_support" {
@@ -32,4 +73,25 @@ variable "single_nat_gateway" {
   description = "Use a single NAT gateway for all private subnets (cost effective) vs one per AZ (high availability)"
   type        = bool
   default     = true
+}
+
+variable "ftw_api_model_outputs_bucket" {
+  description = "Name of the S3 bucket that will store model geotiffs and polygons"
+  type        = string
+  default     = "ftw-api-model-outputs-dev"
+
+  validation {
+    condition     = !can(regex("\\.", var.ftw_api_model_outputs_bucket))
+    error_message = "S3 bucket name must not contain periods (dots) for SSL/TLS compatibility."
+  }
+
+  validation {
+    condition     = !can(regex("--", var.ftw_api_model_outputs_bucket))
+    error_message = "S3 bucket name must not contain consecutive hyphens."
+  }
+
+  validation {
+    condition     = !can(regex("^xn--|.*-s3alias$", var.ftw_api_model_outputs_bucket))
+    error_message = "S3 bucket name must not start with 'xn--' or end with '-s3alias'."
+  }
 }

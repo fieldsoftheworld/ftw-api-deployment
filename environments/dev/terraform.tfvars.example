@@ -2,3 +2,4 @@ region         = "us-east-1"
 vpc_cidr_block = "10.0.0.0/16"
 environment    = "dev"
 signle_nat_gateway = true
+ftw_api_model_outputs_bucket = "ftw-api-model-outputs-dev"

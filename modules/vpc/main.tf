@@ -158,8 +158,3 @@ resource "aws_route_table_association" "private_subnet_az2_association" {
   subnet_id      = aws_subnet.private_subnet_az2.id
   route_table_id = aws_route_table.private_route_table[var.single_nat_gateway ? 0 : 1].id
 }
-
-
-#####################################################################################
-# Possibly add flow logs for VPC to CloudWatch
-#####################################################################################

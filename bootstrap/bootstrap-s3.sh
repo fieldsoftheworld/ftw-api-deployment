@@ -3,7 +3,7 @@
 
 set -e
 
-REGION="us-east-1"
+REGION="us-west-2"
 BUCKET_NAME="ftw-api-terraform-state" # change to whatever is needed
 
 # Create S3 bucket
