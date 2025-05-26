@@ -7,9 +7,15 @@ terraform {
   }
 }
 
+# Generate random suffix for bucket name
+# Prevents bucket squatting
+resource "random_id" "bucket_suffix" {
+  byte_length = 4
+}
+
 # Create model output bucket, vpc endpoint and access control
 resource "aws_s3_bucket" "ftw_api_model_outputs" {
-  bucket = var.ftw_api_model_outputs_bucket
+  bucket = "${var.environment}-${var.ftw_api_model_outputs_bucket}-${random_id.bucket_suffix.hex}"
 
   tags = {
     Name        = "${var.environment}-ftw-api-model-outputs"

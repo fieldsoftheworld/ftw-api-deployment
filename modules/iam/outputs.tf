@@ -1,22 +1,22 @@
 # EC2 Role Outputs
 output "ec2_fastapi_role_arn" {
   description = "The ARN of the EC2 FastAPI IAM role"
-  value       = aws_iam_role.ec2_fastapi_role.arn
+  value       = aws_iam_role.ec2_fastapi_app_role.arn
 }
 
 output "ec2_fastapi_role_name" {
   description = "The name of the EC2 FastAPI IAM role"
-  value       = aws_iam_role.ec2_fastapi_role.name
+  value       = aws_iam_role.ec2_fastapi_app_role.name
 }
 
 output "ec2_fastapi_instance_profile_arn" {
   description = "The ARN of the EC2 FastAPI instance profile"
-  value       = aws_iam_instance_profile.ec2_fastapi_profile.arn
+  value       = aws_iam_instance_profile.ec2_fastapi_app_profile.arn
 }
 
 output "ec2_fastapi_instance_profile_name" {
   description = "The name of the EC2 FastAPI instance profile"
-  value       = aws_iam_instance_profile.ec2_fastapi_profile.name
+  value       = aws_iam_instance_profile.ec2_fastapi_app_profile.name
 }
 
 # API Gateway Role Outputs

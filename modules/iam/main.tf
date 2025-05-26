@@ -8,12 +8,12 @@ terraform {
 }
 
 # IAM Role for fastapi instances
-resource "aws_iam_role" "ec2_fastapi_app" {
+resource "aws_iam_role" "ec2_fastapi_app_role" {
   name = "${var.environment}-ec2-fastapi-app-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
-    Stateament = [
+    Statement = [
       {
         Action = "sts:AssumeRole"
         Effect = "Allow"
@@ -32,9 +32,9 @@ resource "aws_iam_role" "ec2_fastapi_app" {
 }
 
 # IAM Instance Profile for EC2
-resource "aws_iam_instance_profile" "ec2_fastapi_app" {
+resource "aws_iam_instance_profile" "ec2_fastapi_app_profile" {
   name = "${var.environment}-ec2-fastapi-app-profile"
-  role = aws_iam_role.ec2_fastapi_app.name
+  role = aws_iam_role.ec2_fastapi_app_role.name
 
   tags = {
     Name        = "${var.environment}-ec2-fastapi-app-profile"
@@ -46,7 +46,7 @@ resource "aws_iam_instance_profile" "ec2_fastapi_app" {
 # Cloudwatch and logging policy foir EC2
 resource "aws_iam_role_policy" "ec2_cloudwatch_policy" {
   name = "${var.environment}-ec2-cloudwatch-policy"
-  role = aws_iam_role.ec2_fastapi_app.id
+  role = aws_iam_role.ec2_fastapi_app_role.id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -75,7 +75,7 @@ resource "aws_iam_role_policy" "ec2_cloudwatch_policy" {
 # S3 access policy for EC2
 resource "aws_iam_role_policy" "ec2_s3_policy" {
   name = "${var.environment}-ec2-s3-policy"
-  role = aws_iam_role.ec2_fastapi_app.id
+  role = aws_iam_role.ec2_fastapi_app_role.id
 
   policy = jsonencode({
     Version = "2012-10-17"

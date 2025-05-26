@@ -57,9 +57,39 @@ module "iam" {
   source = "../../modules/iam"
 
   # Required variables
-  environment = var.environment
-  region      = var.region
+  environment   = var.environment
+  region        = var.region
   s3_bucket_arn = module.s3.output_bucket_arn
+}
+
+module "api_gateway" {
+  source = "../../modules/api-gateway"
+
+  # Required variables
+  environment = var.environment
+  api_name    = var.api_name
+}
+
+module "security_groups" {
+  source = "../../modules/security-groups"
+
+  environment    = var.environment
+  vpc_id         = module.vpc.vpc_id
+  vpc_cidr_block = var.vpc_cidr_block
+}
+
+module "alb" {
+  source = "../../modules/alb"
+
+  environment            = var.environment
+  vpc_id                 = module.vpc.vpc_id
+  private_subnet_ids     = module.vpc.private_subnet_ids
+  alb_security_group_ids = [module.security_groups.internal_alb_security_group_id]
+  certificate_arn        = aws_acm_certificate.api.arn
+
+  depends_on = [
+    aws_acm_certificate_validation.api
+  ]
 }
 
 output "vpc_id" {
@@ -95,4 +125,19 @@ output "s3_bucket_arn" {
 output "s3_vpc_endpoint_id" {
   description = "The ID of the S3 VPC endpoint"
   value       = module.s3.vpc_endpoint_id
+}
+
+output "api_gateway_id" {
+  description = "The ID of the API Gateway HTTP API"
+  value       = module.api_gateway.api_id
+}
+
+output "api_gateway_endpoint" {
+  description = "The endpoint URL of the API Gateway"
+  value       = module.api_gateway.api_endpoint
+}
+
+output "api_gateway_stage_invoke_url" {
+  description = "The invoke URL for the API Gateway stage"
+  value       = module.api_gateway.stage_invoke_url
 }

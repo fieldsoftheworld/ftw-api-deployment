@@ -95,3 +95,51 @@ variable "ftw_api_model_outputs_bucket" {
     error_message = "S3 bucket name must not start with 'xn--' or end with '-s3alias'."
   }
 }
+
+variable "api_name" {
+  description = "Name of the API Gateway"
+  type        = string
+  default     = "ftw-api"
+}
+
+variable "api_stage_name" {
+  description = "Name of the API Gateway stage"
+  type        = string
+  default     = "v1"
+}
+
+variable "api_auto_deploy" {
+  description = "Whether to automatically deploy API changes to the stage"
+  type        = bool
+  default     = true
+}
+
+variable "api_log_retention_days" {
+  description = "Number of days to retain API Gateway logs"
+  type        = number
+  default     = 30
+}
+
+variable "api_cors_allow_origins" {
+  description = "Origins allowed in CORS requests"
+  type        = list(string)
+  default     = ["*"]
+}
+
+variable "api_detailed_metrics_enabled" {
+  description = "Whether to enable detailed CloudWatch metrics for API Gateway"
+  type        = bool
+  default     = true
+}
+
+variable "api_throttling_burst_limit" {
+  description = "Throttling burst limit for the API"
+  type        = number
+  default     = 100
+}
+
+variable "api_throttling_rate_limit" {
+  description = "Throttling rate limit for the API (requests per second)"
+  type        = number
+  default     = 100
+}
