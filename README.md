@@ -1,6 +1,7 @@
 # ftw-api-deployment
 
-Terraform infrastructure as code for FTW API deployment on AWS. 
+Terraform infrastructure as code for FTW API deployment on AWS. Creates a complete FastAPI application infrastructure with GPU testing capabilities.
+
 ## Prerequisites
 
 - AWS CLI v2 installed and configured
@@ -11,13 +12,14 @@ Terraform infrastructure as code for FTW API deployment on AWS.
 
 This Terraform configuration creates:
 
-- VPC with DNS support and hostnames enabled
-- Public subnets in 2 availability zones
-- Private subnets in 2 availability zones  
-- Internet Gateway for public subnet access
-- NAT Gateway(s) for private subnet outbound access
-- Route tables and associations
-- Configurable single or dual NAT gateway setup
+- **VPC**: DNS support, hostnames enabled, public/private subnets across 2 AZs
+- **Networking**: Internet Gateway, NAT Gateway(s), route tables
+- **Compute**: Auto Scaling Group with EC2 instances for FastAPI application
+- **Load Balancing**: Internal Application Load Balancer with HTTPS
+- **API Gateway**: HTTP API with CORS configuration
+- **Storage**: S3 bucket for model outputs with VPC endpoint
+- **Security**: IAM roles, security groups, SSL certificates
+- **Access**: SSM Session Manager for secure instance access
 
 ### Network CIDR Layout
 
@@ -30,8 +32,6 @@ With the default VPC CIDR block of `10.0.0.0/16`:
 | Private AZ1 | `10.0.2.0/24` | us-east-1a | Private |
 | Private AZ2 | `10.0.3.0/24` | us-east-1b | Private |
 
-Each subnet provides 256 IP addresses (251 usable after AWS reserved IPs).
-
 ## Project Structure
 
 ```
@@ -42,10 +42,14 @@ Each subnet provides 256 IP addresses (251 usable after AWS reserved IPs).
 │       ├── variables.tf      # Variable definitions
 │       └── terraform.tfvars  # Environment-specific values
 ├── modules/
-│   └── vpc/
-│       ├── main.tf           # VPC module resources
-│       ├── variables.tf      # Module variables
-│       └── outputs.tf        # Module outputs
+│   ├── vpc/                  # VPC and networking
+│   ├── ec2/                  # Auto Scaling Group and EC2
+│   ├── alb/                  # Application Load Balancer
+│   ├── api-gateway/          # API Gateway HTTP API
+│   ├── s3/                   # S3 storage and VPC endpoint
+│   ├── iam/                  # IAM roles and policies
+│   ├── security-groups/      # Security group rules
+│   └── waf/                  # Web Application Firewall
 └── scripts/
     └── bootstrap-s3.sh       # S3 backend setup script
 ```
@@ -56,51 +60,93 @@ Each subnet provides 256 IP addresses (251 usable after AWS reserved IPs).
 
 1. Clone this repository
 2. Configure AWS credentials: `aws configure`
-3. Update the bucket name in `scripts/bootstrap-s3.sh` if needed
-4. Create the S3 backend: `./scripts/bootstrap-s3.sh`
+3. Create the S3 backend: `./scripts/bootstrap-s3.sh`
 
 ### Deploy Infrastructure
 
-1. Navigate to your desired environment: `cd environments/dev`
-2. Copy the example variables: `cp terraform.tfvars.example terraform.tfvars`
-3. Edit terraform.tfvars with your specific values
-4. Initialize Terraform: `terraform init`
-5. Review the plan: `terraform plan`
-6. Apply the configuration: `terraform apply`
+1. Navigate to environment: `cd environments/dev`
+2. Edit `terraform.tfvars` with your specific values
+3. Initialize Terraform: `terraform init`
+4. Review the plan: `terraform plan`
+5. Apply the configuration: `terraform apply`
 
 ## Configuration
 
-### Environment Variables
-
-Key variables you can customize in `terraform.tfvars`:
-
-- `region` - AWS region for deployment
-- `vpc_cidr_block` - CIDR block for the VPC
-- `environment` - Environment name (dev, staging, prod)
-- `single_nat_gateway` - Use one NAT gateway (cost-effective) vs one per AZ (high availability)
-
-### Example terraform.tfvars
+### Key Variables in terraform.tfvars
 
 ```hcl
+# Basic Configuration
 region             = "us-east-1"
 vpc_cidr_block     = "10.0.0.0/16"
 environment        = "dev"
 single_nat_gateway = true
+
+# EC2 Configuration
+instance_type = "t3.micro"     # Use "g4dn.xlarge" for GPU testing
+key_pair_name = ""             # Leave empty for SSM-only access
+
+# Auto Scaling Group Configuration
+asg_config = {
+  min_size                  = 1
+  max_size                  = 1    # Set to 3+ to enable scaling
+  desired_capacity          = 1
+  health_check_type         = "EC2"
+  health_check_grace_period = 300
+}
+```
+
+### GPU Testing Configuration
+
+For GPU-based inference testing, update your `terraform.tfvars`:
+
+```hcl
+instance_type = "g4dn.xlarge"  # or other GPU instance types
+```
+
+## Access and Management
+
+### Connecting to EC2 Instances
+
+Use AWS Systems Manager Session Manager for secure access:
+
+```bash
+# List running instances
+aws ec2 describe-instances --filters "Name=tag:Environment,Values=dev" --query 'Reservations[].Instances[?State.Name==`running`].[InstanceId,Tags[?Key==`Name`].Value|[0]]' --output table
+
+# Connect to instance
+aws ssm start-session --target i-1234567890abcdef0
+```
+
+### Enabling Auto Scaling
+
+To enable auto scaling for load testing:
+
+```hcl
+asg_config = {
+  min_size                  = 1
+  max_size                  = 5
+  desired_capacity          = 2
+  health_check_type         = "ELB"  # Use ALB health checks
+  health_check_grace_period = 600
+}
 ```
 
 ## Cost Optimization
 
-- **Development**: Set `single_nat_gateway = true` to use one NAT gateway
-- **Production**: Set `single_nat_gateway = false` for high availability with NAT gateways in each AZ
+- **Development**: Use `single_nat_gateway = true` and `t3.micro` instances
+- **GPU Testing**: Use `g4dn.xlarge` or similar GPU instances as needed
+- **Production**: Set `single_nat_gateway = false` for high availability
 
 ## Outputs
 
-After successful deployment, the following outputs are available:
+Key outputs after deployment:
 
-- `vpc_id` - The ID of the created VPC
-- `public_subnet_ids` - List of public subnet IDs
-- `private_subnet_ids` - List of private subnet IDs
-- `nat_gateway_ips` - Public IP addresses of NAT gateway(s)
+- `vpc_id` - VPC identifier
+- `alb_dns_name` - Load balancer DNS name
+- `api_gateway_stage_invoke_url` - API Gateway endpoint
+- `s3_bucket_id` - Model outputs bucket name
+- `autoscaling_group_name` - ASG name for management
+- `ami_id` - AMI used by EC2 instances
 
 ## Clean Up
 
