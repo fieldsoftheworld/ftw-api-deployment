@@ -1,0 +1,35 @@
+region         = "us-east-1"
+vpc_cidr_block = "10.0.0.0/16"
+environment    = "dev"
+signle_nat_gateway = true
+ftw_api_model_outputs_bucket = "ftw-api-model-outputs-dev"
+
+# EC2 Configuration
+instance_type = "t3.micro"  # Use "g4dn.xlarge" for GPU testing
+key_pair_name = ""          # Leave empty for SSM-only access
+
+# Auto Scaling Group Configuration
+asg_config = {
+  min_size                  = 1
+  max_size                  = 1      # Set to 3 to enable scaling
+  desired_capacity          = 1
+  health_check_type         = "EC2"  # Use "ELB" for ALB health checks
+  health_check_grace_period = 300
+}
+
+# Example configurations for different scenarios:
+
+# For GPU testing:
+# instance_type = "g4dn.xlarge"
+
+# For auto scaling enabled:
+# asg_config = {
+#   min_size                  = 1
+#   max_size                  = 3
+#   desired_capacity          = 2
+#   health_check_type         = "ELB"
+#   health_check_grace_period = 600
+# }
+
+# For SSH access (if needed):
+# key_pair_name = "my-ec2-keypair"
