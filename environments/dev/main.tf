@@ -92,6 +92,23 @@ module "alb" {
   ]
 }
 
+module "ec2" {
+  source = "../../modules/ec2"
+
+  # Required variables
+  environment           = var.environment
+  vpc_id                = module.vpc.vpc_id
+  private_subnet_ids    = module.vpc.private_subnet_ids
+  security_group_ids    = [module.security_groups.ec2_fastapi_security_group_id]
+  instance_profile_name = module.iam.ec2_fastapi_instance_profile_name
+  target_group_arn      = module.alb.target_group_arn
+
+  # Optional variables
+  instance_type = var.instance_type
+  key_pair_name = var.key_pair_name
+  asg_config    = var.asg_config
+}
+
 output "vpc_id" {
   description = "The ID of the VPC"
   value       = module.vpc.vpc_id
@@ -140,4 +157,19 @@ output "api_gateway_endpoint" {
 output "api_gateway_stage_invoke_url" {
   description = "The invoke URL for the API Gateway stage"
   value       = module.api_gateway.stage_invoke_url
+}
+
+output "autoscaling_group_name" {
+  description = "The name of the Auto Scaling Group"
+  value       = module.ec2.autoscaling_group_name
+}
+
+output "launch_template_id" {
+  description = "The ID of the launch template"
+  value       = module.ec2.launch_template_id
+}
+
+output "ami_id" {
+  description = "The AMI ID used by the EC2 instances"
+  value       = module.ec2.ami_id
 }

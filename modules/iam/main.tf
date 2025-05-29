@@ -31,6 +31,12 @@ resource "aws_iam_role" "ec2_fastapi_app_role" {
   }
 }
 
+# Attach SSM access policy for EC2
+resource "aws_iam_role_policy_attachment" "ssm_managed_instance_core" {
+  role       = aws_iam_role.ec2_fastapi_app_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
 # IAM Instance Profile for EC2
 resource "aws_iam_instance_profile" "ec2_fastapi_app_profile" {
   name = "${var.environment}-ec2-fastapi-app-profile"

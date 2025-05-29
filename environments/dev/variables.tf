@@ -143,3 +143,43 @@ variable "api_throttling_rate_limit" {
   type        = number
   default     = 100
 }
+
+# EC2 and Auto Scaling Group variables
+variable "instance_type" {
+  description = "EC2 instance type for FastAPI application"
+  type        = string
+  default     = "t3.micro"
+
+  validation {
+    condition     = can(regex("^[a-z][0-9][a-z]*\\.[a-z]+$", var.instance_type))
+    error_message = "Instance type must be a valid AWS instance type format (e.g., t3.micro, g4dn.xlarge)."
+  }
+}
+
+variable "key_pair_name" {
+  description = "Name of the EC2 Key Pair for SSH access (optional, leave empty for no SSH access)"
+  type        = string
+  default     = ""
+}
+
+variable "asg_config" {
+  description = "Auto Scaling Group configuration for FastAPI instances"
+  type = object({
+    min_size                  = optional(number, 1)
+    max_size                  = optional(number, 1)
+    desired_capacity          = optional(number, 1)
+    health_check_type         = optional(string, "EC2")
+    health_check_grace_period = optional(number, 300)
+  })
+  default = {}
+
+  validation {
+    condition     = contains(["EC2", "ELB"], var.asg_config.health_check_type)
+    error_message = "Health check type must be either 'EC2' or 'ELB'."
+  }
+
+  validation {
+    condition     = var.asg_config.health_check_grace_period >= 0 && var.asg_config.health_check_grace_period <= 7200
+    error_message = "Health check grace period must be between 0 and 7200 seconds."
+  }
+}
