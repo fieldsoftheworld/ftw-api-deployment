@@ -1,8 +1,12 @@
-region         = "us-east-1"
-vpc_cidr_block = "10.0.0.0/16"
-environment    = "dev"
-signle_nat_gateway = true
-ftw_api_model_outputs_bucket = "ftw-api-model-outputs-dev"
+region             = "us-west-2"
+vpc_cidr_block     = "10.0.0.0/16"
+environment        = "dev"
+single_nat_gateway = true
+ftw_api_model_outputs_bucket = "ftw-api-model-outputs"
+
+# Custom API Domain (leave empty for no standard AWS domain)
+# Example: https://abc123.execute-api.us-east-1.amazonaws.com/v1
+custom_domain_name = ""
 
 # EC2 Configuration
 instance_type = "t3.micro"  # Use "g4dn.xlarge" for GPU testing

@@ -17,7 +17,6 @@ variable "stage_name" {
   default     = "v1"
 }
 
-# Single object for all configuration with defaults
 variable "api_config" {
   description = "API Gateway configuration settings"
   type = object({
@@ -29,6 +28,8 @@ variable "api_config" {
     detailed_metrics_enabled = optional(bool, true)
     throttling_burst_limit   = optional(number, 100)
     throttling_rate_limit    = optional(number, 100)
+    custom_domain_name       = optional(string, "")
+    certificate_arn          = optional(string, "")
   })
   default = {}
 }

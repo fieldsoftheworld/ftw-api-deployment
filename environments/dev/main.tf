@@ -2,7 +2,7 @@ terraform {
   required_version = ">= 1.10"
 
   backend "s3" {
-    bucket       = "ftw-api-terraform-state" # should match bucket created in bootstrap-s3.sh
+    bucket       = "ftw-api-terraform-state-cdf18f31" # should match bucket created in bootstrap-s3.sh
     key          = "dev/terraform.tfstate"
     region       = "us-west-2" # hardcoded - cannot use variables here
     encrypt      = true
@@ -19,6 +19,15 @@ terraform {
 
 provider "aws" {
   region = var.region
+}
+
+module "certificate_manager" {
+  source = "../../modules/certificate-manager"
+
+  environment = var.environment
+  ssl_config = {
+    custom_domain_name = var.custom_domain_name
+  }
 }
 
 module "vpc" {
@@ -68,14 +77,43 @@ module "api_gateway" {
   # Required variables
   environment = var.environment
   api_name    = var.api_name
+
+  # API configuration
+  api_config = {
+    auto_deploy              = var.api_auto_deploy
+    log_retention_days       = var.api_log_retention_days
+    cors_allow_origins       = var.api_cors_allow_origins
+    detailed_metrics_enabled = var.api_detailed_metrics_enabled
+    throttling_burst_limit   = var.api_throttling_burst_limit
+    throttling_rate_limit    = var.api_throttling_rate_limit
+    custom_domain_name       = var.custom_domain_name
+    certificate_arn          = module.certificate_manager.certificate_arn
+  }
+
+  depends_on = [module.certificate_manager]
+}
+
+# Route53 record for custom domain
+resource "aws_route53_record" "api_custom_domain" {
+  count   = var.custom_domain_name != "" ? 1 : 0
+  zone_id = module.certificate_manager.route53_zone_id
+  name    = var.custom_domain_name
+  type    = "A"
+
+  alias {
+    name                   = module.api_gateway.domain_name
+    zone_id                = module.api_gateway.domain_zone_id
+    evaluate_target_health = false
+  }
+
+  depends_on = [module.certificate_manager, module.api_gateway]
 }
 
 module "security_groups" {
   source = "../../modules/security-groups"
 
-  environment    = var.environment
-  vpc_id         = module.vpc.vpc_id
-  vpc_cidr_block = var.vpc_cidr_block
+  environment = var.environment
+  vpc_id      = module.vpc.vpc_id
 }
 
 module "alb" {
@@ -84,12 +122,10 @@ module "alb" {
   environment            = var.environment
   vpc_id                 = module.vpc.vpc_id
   private_subnet_ids     = module.vpc.private_subnet_ids
-  alb_security_group_ids = [module.security_groups.internal_alb_security_group_id]
-  certificate_arn        = aws_acm_certificate.api.arn
+  alb_security_group_ids = [module.security_groups.alb_security_group_id]
+  certificate_arn        = module.certificate_manager.certificate_arn
 
-  depends_on = [
-    aws_acm_certificate_validation.api
-  ]
+  depends_on = [module.certificate_manager]
 }
 
 module "ec2" {
@@ -157,6 +193,16 @@ output "api_gateway_endpoint" {
 output "api_gateway_stage_invoke_url" {
   description = "The invoke URL for the API Gateway stage"
   value       = module.api_gateway.stage_invoke_url
+}
+
+output "api_url" {
+  description = "The primary API URL (custom domain if configured, otherwise AWS generated)"
+  value       = var.custom_domain_name != "" ? "https://${var.custom_domain_name}" : module.api_gateway.stage_invoke_url
+}
+
+output "ssl_certificate_arn" {
+  description = "The ARN of the SSL certificate (empty if using AWS generated URL)"
+  value       = module.certificate_manager.certificate_arn
 }
 
 output "autoscaling_group_name" {

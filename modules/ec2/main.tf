@@ -17,11 +17,11 @@ data "aws_ami" "amazon_linux" {
 
   filter {
     name   = "name"
-    values = ["amzn-ami-hvm-*-x86_64"]
+    values = ["al2023-ami-*-x86_64"]
   }
 
   filter {
-    name   = "vitualization-type"
+    name   = "virtualization-type"
     values = ["hvm"]
   }
 
@@ -69,8 +69,11 @@ resource "aws_launch_template" "fastapi_app" {
   )
 
   tag_specifications {
-    Name        = "${var.environment}-fastapi-launch-template"
-    Environment = var.environment
+    resource_type = "instance"
+    tags = {
+      Name        = "${var.environment}-fastapi-launch-template"
+      Environment = var.environment
+    }
   }
 
   lifecycle {

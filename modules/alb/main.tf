@@ -75,25 +75,39 @@ resource "aws_lb_target_group" "fastapi" {
   }
 }
 
-# Create HTTP listener that redirects to HTTPS
+# Create HTTP listener
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.main.arn
   port              = 80
   protocol          = "HTTP"
 
+  # If HTTPS is available, redirect to HTTPS, otherwise forward to target group
   default_action {
-    type = "redirect"
+    type = var.certificate_arn != "" ? "redirect" : "forward"
 
-    redirect {
-      port        = "443"
-      protocol    = "HTTPS"
-      status_code = "HTTP_301"
+    dynamic "redirect" {
+      for_each = var.certificate_arn != "" ? [1] : []
+      content {
+        port        = "443"
+        protocol    = "HTTPS"
+        status_code = "HTTP_301"
+      }
+    }
+
+    dynamic "forward" {
+      for_each = var.certificate_arn == "" ? [1] : []
+      content {
+        target_group {
+          arn = aws_lb_target_group.fastapi.arn
+        }
+      }
     }
   }
 }
 
-# Create HTTPS listener
+# Create HTTPS listener (only if certificate is provided)
 resource "aws_lb_listener" "https" {
+  count             = var.certificate_arn != "" ? 1 : 0
   load_balancer_arn = aws_lb.main.arn
   port              = 443
   protocol          = "HTTPS"
@@ -108,7 +122,7 @@ resource "aws_lb_listener" "https" {
 
 # Create a catch all listener rule for the API
 resource "aws_lb_listener_rule" "api_catch_all" {
-  listener_arn = aws_lb_listener.https.arn
+  listener_arn = var.certificate_arn != "" ? aws_lb_listener.https[0].arn : aws_lb_listener.http.arn
   priority     = 100
 
   action {

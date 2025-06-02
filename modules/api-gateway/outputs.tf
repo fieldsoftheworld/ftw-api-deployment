@@ -42,3 +42,14 @@ output "log_group_arn" {
   description = "The ARN of the CloudWatch log group"
   value       = aws_cloudwatch_log_group.api_gateway.arn
 }
+
+# Custom domain outputs (conditional)
+output "domain_name" {
+  description = "The domain name for the API (custom domain if configured)"
+  value       = var.api_config.custom_domain_name != "" && var.api_config.certificate_arn != "" ? aws_apigatewayv2_domain_name.main[0].domain_name_configuration[0].target_domain_name : ""
+}
+
+output "domain_zone_id" {
+  description = "The Route53 zone ID for the API domain"
+  value       = var.api_config.custom_domain_name != "" && var.api_config.certificate_arn != "" ? aws_apigatewayv2_domain_name.main[0].domain_name_configuration[0].hosted_zone_id : ""
+}
