@@ -77,6 +77,7 @@ module "api_gateway" {
   # Required variables
   environment = var.environment
   api_name    = var.api_name
+  alb_dns_name = module.alb.alb_dns_name
 
   # API configuration
   api_config = {
