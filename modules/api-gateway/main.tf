@@ -101,3 +101,15 @@ resource "aws_apigatewayv2_api_mapping" "main" {
   domain_name = aws_apigatewayv2_domain_name.main[0].id
   stage       = aws_apigatewayv2_stage.main.id
 }
+
+# VPC Link for connecting API Gateway to internal ALB
+resource "aws_apigatewayv2_vpc_link" "main" {
+  name               = "${var.environment}-vpc-link"
+  security_group_ids = var.vpc_link_security_group_ids
+  subnet_ids         = var.private_subnet_ids
+
+  tags = {
+    Name        = "${var.environment}-vpc-link"
+    Environment = var.environment
+  }
+}

@@ -19,6 +19,17 @@ output "ec2_fastapi_security_group_arn" {
   value       = aws_security_group.ec2_fastapi_app.arn
 }
 
+# API Gateway VPC Link Security Group outputs
+output "api_gateway_vpc_link_security_group_id" {
+  description = "The ID of the API Gateway VPC Link security group"
+  value       = aws_security_group.api_gateway_vpc_link.id
+}
+
+output "api_gateway_vpc_link_security_group_arn" {
+  description = "The ARN of the API Gateway VPC Link security group"
+  value       = aws_security_group.api_gateway_vpc_link.arn
+}
+
 # VPC Endpoints Security Group outputs (conditional)
 output "vpc_endpoints_security_group_id" {
   description = "The ID of the VPC endpoints security group"

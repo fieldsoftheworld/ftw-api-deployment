@@ -33,6 +33,22 @@ resource "aws_security_group" "alb" {
     ipv6_cidr_blocks = ["::/0"]
   }
 
+  # HTTP inbound from VPC (for VPC Link)
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr_block]
+  }
+
+  # HTTPS inbound from VPC (for VPC Link)
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr_block]
+  }
+
   # Allow all outbound traffic
   egress {
     from_port        = 0
@@ -83,6 +99,41 @@ resource "aws_security_group" "ec2_fastapi_app" {
     Name        = "${var.environment}-ec2-fastapi-sg"
     Environment = var.environment
     Purpose     = "fastapi-app"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+################################################################################
+# Security Groups for API Gateway VPC Link
+################################################################################
+resource "aws_security_group" "api_gateway_vpc_link" {
+  name_prefix = "${var.environment}-apigw-vpc-link-sg"
+  description = "Security group for API Gateway VPC Link"
+  vpc_id      = var.vpc_id
+
+  # Allow HTTP traffic to ALB
+  egress {
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb.id]
+  }
+
+  # Allow HTTPS traffic to ALB
+  egress {
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb.id]
+  }
+
+  tags = {
+    Name        = "${var.environment}-apigw-vpc-link-sg"
+    Environment = var.environment
+    Purpose     = "api-gateway-vpc-link"
   }
 
   lifecycle {

@@ -32,13 +32,18 @@ output "launch_template_latest_version" {
 
 # AMI information
 output "ami_id" {
-  description = "The AMI ID used by the launch template"
-  value       = data.aws_ami.amazon_linux.id
+  description = "The Deep Learning AMI ID used by the launch template"
+  value       = data.aws_ami.deep_learning_gpu.id
 }
 
 output "ami_name" {
-  description = "The name of the AMI used"
-  value       = data.aws_ami.amazon_linux.name
+  description = "The name of the Deep Learning AMI used"
+  value       = data.aws_ami.deep_learning_gpu.name
+}
+
+output "ami_description" {
+  description = "The description of the Deep Learning AMI used"
+  value       = data.aws_ami.deep_learning_gpu.description
 }
 
 # Configuration outputs

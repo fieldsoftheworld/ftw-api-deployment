@@ -1,15 +1,16 @@
 # ALB Integration for API Gateway
 
 
-# Integration to ALB for all routes
+# Integration to ALB for all routes via VPC Link
 resource "aws_apigatewayv2_integration" "alb_integration" {
   api_id             = aws_apigatewayv2_api.main.id
   integration_type   = "HTTP_PROXY"
   integration_method = "ANY"
-  integration_uri    = "http://${var.alb_dns_name}"
+  integration_uri    = var.alb_listener_arn
 
-  # Connection settings
-  connection_type = "INTERNET"
+  # Connection settings - use VPC Link for internal ALB
+  connection_type = "VPC_LINK"
+  connection_id   = aws_apigatewayv2_vpc_link.main.id
 
   # Timeout settings (max 30 seconds for API Gateway)
   timeout_milliseconds = 29000
@@ -33,3 +34,11 @@ resource "aws_apigatewayv2_route" "example_route" {
   route_key = "PUT /example"
   target    = "integrations/${aws_apigatewayv2_integration.alb_integration.id}"
 }
+
+# Route for GET /health - Health check endpoint
+resource "aws_apigatewayv2_route" "health_route" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "GET /health"
+  target    = "integrations/${aws_apigatewayv2_integration.alb_integration.id}"
+}
+

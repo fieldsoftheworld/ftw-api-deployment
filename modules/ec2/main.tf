@@ -8,16 +8,15 @@ terraform {
 }
 
 
-# Use basic AL23 AMI as default
-# For GPU instances, use a Deep Learning AMI
-# Example: ami-0c02fb55956c7d316 (Deep Learning AMI with CUDA/Docker pre-installed)
-data "aws_ami" "amazon_linux" {
+# Data source for Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 24.04)
+# This will always fetch the latest version automatically
+data "aws_ami" "deep_learning_gpu" {
   most_recent = true
   owners      = ["amazon"]
 
   filter {
     name   = "name"
-    values = ["al2023-ami-*-x86_64"]
+    values = ["Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 24.04) *"]
   }
 
   filter {
@@ -29,12 +28,17 @@ data "aws_ami" "amazon_linux" {
     name   = "state"
     values = ["available"]
   }
+
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
 }
 
 # Create "Launch Template" for Auto Scaling Group
 resource "aws_launch_template" "fastapi_app" {
   name_prefix   = "${var.environment}-fastapi-lt-"
-  image_id      = data.aws_ami.amazon_linux.id
+  image_id      = data.aws_ami.deep_learning_gpu.id
   instance_type = var.instance_type
   key_name      = var.key_pair_name != "" ? var.key_pair_name : null
 
@@ -56,15 +60,17 @@ resource "aws_launch_template" "fastapi_app" {
     http_put_response_hop_limit = 2
   }
 
-  # Basic user data for system updates
-  # TODO: Figure out a better solution for deploying FTW app
+  # User data script for Ubuntu (Deep Learning AMI)
   user_data = base64encode(<<-EOF
         #!/bin/bash
-        yum update -y
-        # Install SSM agent (should be pre-installed on AL2023)
-        yum install -y amazon-ssm-agent
+        apt-get update
+        apt-get upgrade -y
+        
+        # Ensure SSM agent is running (pre-installed on Deep Learning AMI)
         systemctl enable amazon-ssm-agent
         systemctl start amazon-ssm-agent
+        
+        # TODO: Figure out a better solution for deploying FTW app
     EOF
   )
 

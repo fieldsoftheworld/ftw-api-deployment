@@ -38,3 +38,8 @@ output "private_route_table_ids" {
   description = "The IDs of the private route tables"
   value       = aws_route_table.private_route_table[*].id
 }
+
+output "vpc_cidr_block" {
+  description = "The CIDR block of the VPC"
+  value       = aws_vpc.main.cidr_block
+}

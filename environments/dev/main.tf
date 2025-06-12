@@ -75,9 +75,12 @@ module "api_gateway" {
   source = "../../modules/api-gateway"
 
   # Required variables
-  environment = var.environment
-  api_name    = var.api_name
-  alb_dns_name = module.alb.alb_dns_name
+  environment                  = var.environment
+  api_name                     = var.api_name
+  alb_dns_name                 = module.alb.alb_dns_name
+  alb_listener_arn             = module.alb.http_listener_arn
+  private_subnet_ids           = module.vpc.private_subnet_ids
+  vpc_link_security_group_ids  = [module.security_groups.api_gateway_vpc_link_security_group_id]
 
   # API configuration
   api_config = {
@@ -113,8 +116,9 @@ resource "aws_route53_record" "api_custom_domain" {
 module "security_groups" {
   source = "../../modules/security-groups"
 
-  environment = var.environment
-  vpc_id      = module.vpc.vpc_id
+  environment    = var.environment
+  vpc_id         = module.vpc.vpc_id
+  vpc_cidr_block = module.vpc.vpc_cidr_block
 }
 
 module "alb" {
