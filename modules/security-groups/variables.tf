@@ -8,6 +8,11 @@ variable "vpc_id" {
   type        = string
 }
 
+variable "vpc_cidr_block" {
+  description = "CIDR block of the VPC"
+  type        = string
+}
+
 variable "fastapi_app_port" {
   description = "Port that the FastAPI application runs on"
   type        = number

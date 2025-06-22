@@ -33,3 +33,23 @@ variable "api_config" {
   })
   default = {}
 }
+
+variable "alb_dns_name" {
+  description = "DNS name of the Application Load Balancer running FastAPI"
+  type        = string
+}
+
+variable "alb_listener_arn" {
+  description = "ARN of the ALB listener for VPC Link integration"
+  type        = string
+}
+
+variable "private_subnet_ids" {
+  description = "List of private subnet IDs for VPC Link"
+  type        = list(string)
+}
+
+variable "vpc_link_security_group_ids" {
+  description = "List of security group IDs for VPC Link"
+  type        = list(string)
+}
