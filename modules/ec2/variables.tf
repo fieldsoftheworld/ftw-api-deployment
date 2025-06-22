@@ -36,8 +36,8 @@ variable "instance_type" {
   default     = "t3.micro"
 
   validation {
-    condition     = can(regex("^[a-z][0-9][a-z]*\\.[a-z]+$", var.instance_type))
-    error_message = "Instance type must be a valid AWS instance type format (e.g., t3.micro, g4dn.xlarge)."
+    condition     = can(regex("^[a-z][0-9][a-z]*\\.[0-9]*[a-z]+$", var.instance_type))
+    error_message = "Instance type must be a valid AWS instance type format (e.g., t3.micro, g4dn.xlarge, g6.2xlarge)."
   }
 }
 
