@@ -20,6 +20,11 @@ terraform {
 provider "aws" {
   region = var.region
 }
+# This provider is used for resources in us-east-1
+provider "aws" {
+  alias  = "us_east_1" 
+  region = "us-east-1"
+}
 
 module "certificate_manager" {
   source = "../../modules/certificate-manager"
@@ -159,6 +164,9 @@ module "waf" {
   tags = {
     Environment = var.environment
     Project     = "fields-of-the-world"
+  }
+   providers = {
+    aws = aws.us_east_1
   }
 }
 
