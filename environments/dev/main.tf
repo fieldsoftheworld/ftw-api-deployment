@@ -155,36 +155,38 @@ module "ec2" {
   asg_config    = var.asg_config
 }
 # WAF Module - Web Application Firewall for CloudFront
-module "waf" {
-  source = "../../modules/waf"
-  
-  environment = var.environment
-  rate_limit  = 2000  # 2000 requests per 5 minutes per IP
-  
-  tags = {
-    Environment = var.environment
-    Project     = "fields-of-the-world"
-  }
-   providers = {
-    aws = aws.us_east_1
-  }
-}
+# COMMENTED OUT - Preserving code for future use on separate branch
+# module "waf" {
+#   source = "../../modules/waf"
+#   
+#   environment = var.environment
+#   rate_limit  = 2000  # 2000 requests per 5 minutes per IP
+#   
+#   tags = {
+#     Environment = var.environment
+#     Project     = "fields-of-the-world"
+#   }
+#    providers = {
+#     aws = aws.us_east_1
+#   }
+# }
 
 # CloudFront Module - CDN with WAF protection
-module "cloudfront" {
-  source = "../../modules/cloudfront"
-  
-  environment              = var.environment
-  api_gateway_invoke_url   = module.api_gateway.stage_invoke_url
-  waf_web_acl_arn         = module.waf.web_acl_arn
-  
-  tags = {
-    Environment = var.environment
-    Project     = "fields-of-the-world"
-  }
-  
-  depends_on = [module.waf, module.api_gateway]
-}
+# COMMENTED OUT - Preserving code for future use on separate branch
+# module "cloudfront" {
+#   source = "../../modules/cloudfront"
+#   
+#   environment              = var.environment
+#   api_gateway_invoke_url   = module.api_gateway.stage_invoke_url
+#   waf_web_acl_arn         = module.waf.web_acl_arn
+#   
+#   tags = {
+#     Environment = var.environment
+#     Project     = "fields-of-the-world"
+#   }
+#   
+#   depends_on = [module.waf, module.api_gateway]
+# }
 output "vpc_id" {
   description = "The ID of the VPC"
   value       = module.vpc.vpc_id

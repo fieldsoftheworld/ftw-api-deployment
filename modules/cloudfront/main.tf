@@ -32,12 +32,20 @@ resource "aws_cloudfront_distribution" "api_distribution" {
   comment             = "CloudFront distribution for ${var.environment} Fields of the World API"
   default_root_object = ""
   web_acl_id          = var.waf_web_acl_arn
+  
+  # Explicit dependency on data sources
+  depends_on = [
+    data.aws_cloudfront_cache_policy.caching_disabled,
+    data.aws_cloudfront_cache_policy.caching_optimized,
+    data.aws_cloudfront_origin_request_policy.all_viewer,
+    data.aws_cloudfront_response_headers_policy.simple_cors
+  ]
 
   # Origin configuration - pointing to API Gateway
   origin {
-    domain_name = replace(var.api_gateway_invoke_url, "https://", "")
+    domain_name = regex("https://([^/]+)", var.api_gateway_invoke_url)[0]
     origin_id   = "api-gateway-${var.environment}"
-    origin_path = ""
+    origin_path = regex("https://[^/]+(/.*)", var.api_gateway_invoke_url)[0]
 
     custom_origin_config {
       http_port              = 80
@@ -48,22 +56,8 @@ resource "aws_cloudfront_distribution" "api_distribution" {
   }
 
   # Cache behavior for root endpoint - short caching (5 minutes)
-  ordered_cache_behavior {
-    path_pattern               = "/"
-    target_origin_id           = "api-gateway-${var.environment}"
-    viewer_protocol_policy     = "redirect-to-https"
-    allowed_methods            = ["GET", "HEAD", "OPTIONS"]
-    cached_methods             = ["GET", "HEAD"]
-    compress                   = true
-    cache_policy_id            = data.aws_cloudfront_cache_policy.caching_optimized.id
-    origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.all_viewer.id
-    response_headers_policy_id = data.aws_cloudfront_response_headers_policy.simple_cors.id
-
-    # Override TTL for short caching
-    min_ttl     = 0
-    default_ttl = 300  # 5 minutes
-    max_ttl     = 300  # 5 minutes
-  }
+  # Note: Removed conflicting root path behavior that was causing 403s
+  # All requests now use default cache behavior with proper API Gateway routing
 
   # Default cache behavior - for dynamic content (no caching)
   default_cache_behavior {
