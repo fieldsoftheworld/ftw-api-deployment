@@ -19,9 +19,10 @@ variable "alb_security_group_ids" {
   type        = list(string)
 }
 
-variable "certificate_arn" {
-  description = "ARN of the ACM certificate for HTTPS listener"
+variable "custom_domain_name" {
+  description = "Custom domain name (empty string if no custom domain)"
   type        = string
+  default     = ""
 }
 
 # Common configuration with sensible defaults

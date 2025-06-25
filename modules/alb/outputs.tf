@@ -35,11 +35,6 @@ output "target_group_id" {
 }
 
 # Listener outputs
-output "https_listener_arn" {
-  description = "The ARN of the HTTPS listener (empty if no certificate)"
-  value       = var.certificate_arn != "" ? aws_lb_listener.https[0].arn : ""
-}
-
 output "http_listener_arn" {
   description = "The ARN of the HTTP listener"
   value       = aws_lb_listener.http.arn

@@ -75,12 +75,12 @@ module "api_gateway" {
   source = "../../modules/api-gateway"
 
   # Required variables
-  environment                  = var.environment
-  api_name                     = var.api_name
-  alb_dns_name                 = module.alb.alb_dns_name
-  alb_listener_arn             = module.alb.http_listener_arn
-  private_subnet_ids           = module.vpc.private_subnet_ids
-  vpc_link_security_group_ids  = [module.security_groups.api_gateway_vpc_link_security_group_id]
+  environment                 = var.environment
+  api_name                    = var.api_name
+  alb_dns_name                = module.alb.alb_dns_name
+  alb_listener_arn            = module.alb.http_listener_arn
+  private_subnet_ids          = module.vpc.private_subnet_ids
+  vpc_link_security_group_ids = [module.security_groups.api_gateway_vpc_link_security_group_id]
 
   # API configuration
   api_config = {
@@ -128,9 +128,7 @@ module "alb" {
   vpc_id                 = module.vpc.vpc_id
   private_subnet_ids     = module.vpc.private_subnet_ids
   alb_security_group_ids = [module.security_groups.alb_security_group_id]
-  certificate_arn        = module.certificate_manager.certificate_arn
-
-  depends_on = [module.certificate_manager]
+  custom_domain_name     = var.custom_domain_name
 }
 
 module "ec2" {
@@ -223,4 +221,9 @@ output "launch_template_id" {
 output "ami_id" {
   description = "The AMI ID used by the EC2 instances"
   value       = module.ec2.ami_id
+}
+
+output "route53_name_servers" {
+  description = "The Route53 name servers for the custom domain (empty if no custom domain)"
+  value       = module.certificate_manager.route53_name_servers
 }
