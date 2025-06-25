@@ -7,10 +7,16 @@ terraform {
   }
 }
 
-# Route53 zone data source (only if custom domain is specified)
-data "aws_route53_zone" "main" {
+# Route53 hosted zone for custom domain (only created if custom domain is specified)
+resource "aws_route53_zone" "main" {
   count = var.ssl_config.custom_domain_name != "" ? 1 : 0
   name  = var.ssl_config.custom_domain_name
+
+  tags = {
+    Name        = "${var.environment}-${var.ssl_config.custom_domain_name}-zone"
+    Environment = var.environment
+    Purpose     = "api-custom-domain"
+  }
 }
 
 # ACM Certificate for custom domain (only created if custom domain is specified)
@@ -45,13 +51,13 @@ resource "aws_route53_record" "validation" {
   records         = [each.value.record]
   ttl             = 60
   type            = each.value.type
-  zone_id         = data.aws_route53_zone.main[0].zone_id
+  zone_id         = aws_route53_zone.main[0].zone_id
 }
 
 # Certificate validation (only if custom domain is specified)
 resource "aws_acm_certificate_validation" "main" {
-  count           = var.ssl_config.custom_domain_name != "" ? 1 : 0
-  certificate_arn = aws_acm_certificate.main[0].arn
+  count                   = var.ssl_config.custom_domain_name != "" ? 1 : 0
+  certificate_arn         = aws_acm_certificate.main[0].arn
   validation_record_fqdns = [for record in aws_route53_record.validation : record.fqdn]
 
   timeouts {
