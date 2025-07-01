@@ -12,9 +12,9 @@ data "aws_cloudfront_cache_policy" "caching_optimized" {
   name = "Managed-CachingOptimized"
 }
 
-# Managed origin request policy for API Gateway
-data "aws_cloudfront_origin_request_policy" "all_viewer" {
-  name = "Managed-AllViewer"
+# Managed origin request policy for API Gateway (excludes Host header)
+data "aws_cloudfront_origin_request_policy" "all_viewer_except_host" {
+  name = "Managed-AllViewerExceptHostHeader"
 }
 
 # Managed response headers policy for CORS
@@ -32,20 +32,13 @@ resource "aws_cloudfront_distribution" "api_distribution" {
   comment             = "CloudFront distribution for ${var.environment} Fields of the World API"
   default_root_object = ""
   web_acl_id          = var.waf_web_acl_arn
-  
-  # Explicit dependency on data sources
-  depends_on = [
-    data.aws_cloudfront_cache_policy.caching_disabled,
-    data.aws_cloudfront_cache_policy.caching_optimized,
-    data.aws_cloudfront_origin_request_policy.all_viewer,
-    data.aws_cloudfront_response_headers_policy.simple_cors
-  ]
+  aliases             = var.custom_domain_name != "" ? [var.custom_domain_name] : []
 
   # Origin configuration - pointing to API Gateway
   origin {
     domain_name = regex("https://([^/]+)", var.api_gateway_invoke_url)[0]
     origin_id   = "api-gateway-${var.environment}"
-    origin_path = regex("https://[^/]+(/.*)", var.api_gateway_invoke_url)[0]
+    origin_path = "/v1"
 
     custom_origin_config {
       http_port              = 80
@@ -67,7 +60,7 @@ resource "aws_cloudfront_distribution" "api_distribution" {
     cached_methods             = ["GET", "HEAD"]
     compress                   = true
     cache_policy_id            = data.aws_cloudfront_cache_policy.caching_disabled.id
-    origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.all_viewer.id
+    origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.all_viewer_except_host.id
     response_headers_policy_id = data.aws_cloudfront_response_headers_policy.simple_cors.id
   }
 
@@ -80,7 +73,10 @@ resource "aws_cloudfront_distribution" "api_distribution" {
 
   # SSL certificate configuration
   viewer_certificate {
-    cloudfront_default_certificate = true
+    cloudfront_default_certificate = var.custom_domain_name == ""
+    acm_certificate_arn            = var.custom_domain_name != "" ? var.certificate_arn : null
+    ssl_support_method             = var.custom_domain_name != "" ? "sni-only" : null
+    minimum_protocol_version       = var.custom_domain_name != "" ? "TLSv1.2_2021" : null
   }
 
   # Tags

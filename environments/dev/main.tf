@@ -22,7 +22,7 @@ provider "aws" {
 }
 # This provider is used for resources in us-east-1
 provider "aws" {
-  alias  = "us_east_1" 
+  alias  = "us_east_1"
   region = "us-east-1"
 }
 
@@ -32,6 +32,11 @@ module "certificate_manager" {
   environment = var.environment
   ssl_config = {
     custom_domain_name = var.custom_domain_name
+  }
+
+  # Cert has to be created in us-east-1
+  providers = {
+    aws.us_east_1 = aws.us_east_1
   }
 }
 
@@ -110,12 +115,12 @@ resource "aws_route53_record" "api_custom_domain" {
   type    = "A"
 
   alias {
-    name                   = module.api_gateway.domain_name
-    zone_id                = module.api_gateway.domain_zone_id
+    name                   = module.cloudfront.cloudfront_domain_name
+    zone_id                = module.cloudfront.cloudfront_hosted_zone_id
     evaluate_target_health = false
   }
 
-  depends_on = [module.certificate_manager, module.api_gateway]
+  depends_on = [module.certificate_manager, module.cloudfront]
 }
 
 module "security_groups" {
@@ -129,11 +134,16 @@ module "security_groups" {
 module "alb" {
   source = "../../modules/alb"
 
+  # ALB uses simple http as https stops at gateway
   environment            = var.environment
   vpc_id                 = module.vpc.vpc_id
   private_subnet_ids     = module.vpc.private_subnet_ids
   alb_security_group_ids = [module.security_groups.alb_security_group_id]
-  certificate_arn        = module.certificate_manager.certificate_arn
+  certificate_arn        = ""
+
+  alb_config = {
+    health_check_interval = 300
+  }
 
   depends_on = [module.certificate_manager]
 }
@@ -155,38 +165,38 @@ module "ec2" {
   asg_config    = var.asg_config
 }
 # WAF Module - Web Application Firewall for CloudFront
-# COMMENTED OUT - Preserving code for future use on separate branch
-# module "waf" {
-#   source = "../../modules/waf"
-#   
-#   environment = var.environment
-#   rate_limit  = 2000  # 2000 requests per 5 minutes per IP
-#   
-#   tags = {
-#     Environment = var.environment
-#     Project     = "fields-of-the-world"
-#   }
-#    providers = {
-#     aws = aws.us_east_1
-#   }
-# }
+module "waf" {
+  source = "../../modules/waf"
+
+  environment = var.environment
+  rate_limit  = 2000 # 2000 requests per 5 minutes per IP
+
+  tags = {
+    Environment = var.environment
+    Project     = "fields-of-the-world"
+  }
+  providers = {
+    aws = aws.us_east_1
+  }
+}
 
 # CloudFront Module - CDN with WAF protection
-# COMMENTED OUT - Preserving code for future use on separate branch
-# module "cloudfront" {
-#   source = "../../modules/cloudfront"
-#   
-#   environment              = var.environment
-#   api_gateway_invoke_url   = module.api_gateway.stage_invoke_url
-#   waf_web_acl_arn         = module.waf.web_acl_arn
-#   
-#   tags = {
-#     Environment = var.environment
-#     Project     = "fields-of-the-world"
-#   }
-#   
-#   depends_on = [module.waf, module.api_gateway]
-# }
+module "cloudfront" {
+  source = "../../modules/cloudfront"
+
+  environment            = var.environment
+  api_gateway_invoke_url = module.api_gateway.stage_invoke_url
+  waf_web_acl_arn        = module.waf.web_acl_arn
+  custom_domain_name     = var.custom_domain_name
+  certificate_arn        = module.certificate_manager.cloudfront_certificate_arn
+
+  tags = {
+    Environment = var.environment
+    Project     = "fields-of-the-world"
+  }
+
+  depends_on = [module.waf, module.api_gateway, module.certificate_manager]
+}
 output "vpc_id" {
   description = "The ID of the VPC"
   value       = module.vpc.vpc_id
@@ -245,6 +255,11 @@ output "api_url" {
 output "ssl_certificate_arn" {
   description = "The ARN of the SSL certificate (empty if using AWS generated URL)"
   value       = module.certificate_manager.certificate_arn
+}
+
+output "route53_name_servers" {
+  description = "Route53 name servers for custom domain (for DNS delegation)"
+  value       = var.custom_domain_name != "" ? module.certificate_manager.route53_name_servers : []
 }
 
 output "autoscaling_group_name" {
