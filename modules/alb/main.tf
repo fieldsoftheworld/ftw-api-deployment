@@ -81,58 +81,14 @@ resource "aws_lb_listener" "http" {
   port              = 80
   protocol          = "HTTP"
 
-  # If HTTPS is available, redirect to HTTPS, otherwise forward to target group
+  # Always forward to target group (HTTPS termination handled by API Gateway)
   default_action {
-    type = var.certificate_arn != "" ? "redirect" : "forward"
+    type = "forward"
 
-    dynamic "redirect" {
-      for_each = var.certificate_arn != "" ? [1] : []
-      content {
-        port        = "443"
-        protocol    = "HTTPS"
-        status_code = "HTTP_301"
+    forward {
+      target_group {
+        arn = aws_lb_target_group.fastapi.arn
       }
-    }
-
-    dynamic "forward" {
-      for_each = var.certificate_arn == "" ? [1] : []
-      content {
-        target_group {
-          arn = aws_lb_target_group.fastapi.arn
-        }
-      }
-    }
-  }
-}
-
-# Create HTTPS listener (only if certificate is provided)
-resource "aws_lb_listener" "https" {
-  count             = var.certificate_arn != "" ? 1 : 0
-  load_balancer_arn = aws_lb.main.arn
-  port              = 443
-  protocol          = "HTTPS"
-  certificate_arn   = var.certificate_arn
-  ssl_policy        = var.alb_config.ssl_policy
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.fastapi.arn
-  }
-}
-
-# Create a catch all listener rule for the API
-resource "aws_lb_listener_rule" "api_catch_all" {
-  listener_arn = var.certificate_arn != "" ? aws_lb_listener.https[0].arn : aws_lb_listener.http.arn
-  priority     = 100
-
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.fastapi.arn
-  }
-
-  condition {
-    path_pattern {
-      values = ["/*"]
     }
   }
 }

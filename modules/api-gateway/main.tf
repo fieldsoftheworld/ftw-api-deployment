@@ -79,7 +79,7 @@ resource "aws_apigatewayv2_stage" "main" {
 
 # Custom domain name (only if specified and certificate is provided)
 resource "aws_apigatewayv2_domain_name" "main" {
-  count       = var.api_config.custom_domain_name != "" && var.api_config.certificate_arn != "" ? 1 : 0
+  count       = var.api_config.custom_domain_name != "" ? 1 : 0
   domain_name = var.api_config.custom_domain_name
 
   domain_name_configuration {
@@ -96,7 +96,7 @@ resource "aws_apigatewayv2_domain_name" "main" {
 
 # API mapping for custom domain (only if specified and certificate is provided)
 resource "aws_apigatewayv2_api_mapping" "main" {
-  count       = var.api_config.custom_domain_name != "" && var.api_config.certificate_arn != "" ? 1 : 0
+  count       = var.api_config.custom_domain_name != "" ? 1 : 0
   api_id      = aws_apigatewayv2_api.main.id
   domain_name = aws_apigatewayv2_domain_name.main[0].id
   stage       = aws_apigatewayv2_stage.main.id

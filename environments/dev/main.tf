@@ -194,6 +194,6 @@ module "cloudfront" {
     Environment = var.environment
     Project     = "fields-of-the-world"
   }
-
   depends_on = [module.waf, module.api_gateway, module.certificate_manager]
 }
+

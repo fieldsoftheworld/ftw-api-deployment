@@ -9,6 +9,7 @@ terraform {
 }
 
 # Route53 zone for custom domain (only created if custom domain is specified)
+
 resource "aws_route53_zone" "main" {
   count = var.ssl_config.custom_domain_name != "" ? 1 : 0
   name  = var.ssl_config.custom_domain_name
