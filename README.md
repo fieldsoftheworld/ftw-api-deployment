@@ -15,10 +15,11 @@ This Terraform configuration creates:
 - **VPC**: DNS support, hostnames enabled, public/private subnets across 2 AZs
 - **Networking**: Internet Gateway, NAT Gateway(s), route tables
 - **Compute**: Auto Scaling Group with EC2 instances for FastAPI application
-- **Load Balancing**: Internal Application Load Balancer with HTTPS
-- **API Gateway**: HTTP API with CORS configuration
+- **Load Balancing**: Internal Application Load Balancer with HTTP
+- **API Gateway**: HTTP API with CORS configuration and custom domain support
+- **CDN**: CloudFront distribution for caching and global distribution
+- **Security**: WAF with rate limiting, IAM roles, security groups, SSL certificates
 - **Storage**: S3 bucket for model outputs with VPC endpoint
-- **Security**: IAM roles, security groups, SSL certificates
 - **Access**: SSM Session Manager for secure instance access
 
 ### Network CIDR Layout
@@ -46,12 +47,15 @@ With the default VPC CIDR block of `10.0.0.0/16`:
 │   ├── ec2/                  # Auto Scaling Group and EC2
 │   ├── alb/                  # Application Load Balancer
 │   ├── api-gateway/          # API Gateway HTTP API
+│   ├── cloudfront/           # CloudFront CDN distribution
+│   ├── waf/                  # Web Application Firewall
+│   ├── certificate-manager/  # SSL certificates and Route53
 │   ├── s3/                   # S3 storage and VPC endpoint
 │   ├── iam/                  # IAM roles and policies
-│   ├── security-groups/      # Security group rules
-│   └── waf/                  # Web Application Firewall
-└── scripts/
+│   └── security-groups/      # Security group rules
+└── bootstrap/
     └── bootstrap-s3.sh       # S3 backend setup script
+
 ```
 
 ## Getting Started
@@ -60,7 +64,7 @@ With the default VPC CIDR block of `10.0.0.0/16`:
 
 1. Clone this repository
 2. Configure AWS credentials: `aws configure`
-3. Create the S3 backend: `./scripts/bootstrap-s3.sh`
+3. Create the S3 backend: `./bootstrap/bootstrap-s3.sh`
 
 ### Deploy Infrastructure
 
@@ -142,10 +146,12 @@ asg_config = {
 Key outputs after deployment:
 
 - `vpc_id` - VPC identifier
-- `alb_dns_name` - Load balancer DNS name
-- `api_gateway_stage_invoke_url` - API Gateway endpoint
-- `s3_bucket_id` - Model outputs bucket name
+- `api_url` - Primary API URL (custom domain or CloudFront)
+- `api_gateway_stage_invoke_url` - Direct API Gateway endpoint
+- `route53_name_servers` - DNS name servers for custom domain
+- `ssl_certificate_arn` - SSL certificate ARN
 - `autoscaling_group_name` - ASG name for management
+- `launch_template_id` - Launch template identifier
 - `ami_id` - AMI used by EC2 instances
 
 ## Clean Up

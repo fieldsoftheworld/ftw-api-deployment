@@ -20,11 +20,6 @@ terraform {
 provider "aws" {
   region = var.region
 }
-# This provider is used for resources in us-east-1
-provider "aws" {
-  alias  = "us_east_1"
-  region = "us-east-1"
-}
 
 module "certificate_manager" {
   source = "../../modules/certificate-manager"
@@ -32,11 +27,6 @@ module "certificate_manager" {
   environment = var.environment
   ssl_config = {
     custom_domain_name = var.custom_domain_name
-  }
-
-  # Cert has to be created in us-east-1
-  providers = {
-    aws.us_east_1 = aws.us_east_1
   }
 }
 
@@ -85,12 +75,12 @@ module "api_gateway" {
   source = "../../modules/api-gateway"
 
   # Required variables
-  environment                 = var.environment
-  api_name                    = var.api_name
-  alb_dns_name                = module.alb.alb_dns_name
-  alb_listener_arn            = module.alb.http_listener_arn
-  private_subnet_ids          = module.vpc.private_subnet_ids
-  vpc_link_security_group_ids = [module.security_groups.api_gateway_vpc_link_security_group_id]
+  environment                  = var.environment
+  api_name                     = var.api_name
+  alb_dns_name                 = module.alb.alb_dns_name
+  alb_listener_arn             = module.alb.http_listener_arn
+  private_subnet_ids           = module.vpc.private_subnet_ids
+  vpc_link_security_group_ids  = [module.security_groups.api_gateway_vpc_link_security_group_id]
 
   # API configuration
   api_config = {
@@ -115,12 +105,12 @@ resource "aws_route53_record" "api_custom_domain" {
   type    = "A"
 
   alias {
-    name                   = module.cloudfront.cloudfront_domain_name
-    zone_id                = module.cloudfront.cloudfront_hosted_zone_id
+    name                   = module.api_gateway.domain_name
+    zone_id                = module.api_gateway.domain_zone_id
     evaluate_target_health = false
   }
 
-  depends_on = [module.certificate_manager, module.cloudfront]
+  depends_on = [module.certificate_manager, module.api_gateway]
 }
 
 module "security_groups" {
@@ -134,16 +124,11 @@ module "security_groups" {
 module "alb" {
   source = "../../modules/alb"
 
-  # ALB uses simple http as https stops at gateway
   environment            = var.environment
   vpc_id                 = module.vpc.vpc_id
   private_subnet_ids     = module.vpc.private_subnet_ids
   alb_security_group_ids = [module.security_groups.alb_security_group_id]
-  certificate_arn        = ""
-
-  alb_config = {
-    health_check_interval = 300
-  }
+  certificate_arn        = module.certificate_manager.certificate_arn
 
   depends_on = [module.certificate_manager]
 }
@@ -164,36 +149,78 @@ module "ec2" {
   key_pair_name = var.key_pair_name
   asg_config    = var.asg_config
 }
-# WAF Module - Web Application Firewall for CloudFront
-module "waf" {
-  source = "../../modules/waf"
 
-  environment = var.environment
-  rate_limit  = 2000 # 2000 requests per 5 minutes per IP
-
-  tags = {
-    Environment = var.environment
-    Project     = "fields-of-the-world"
-  }
-  providers = {
-    aws = aws.us_east_1
-  }
+output "vpc_id" {
+  description = "The ID of the VPC"
+  value       = module.vpc.vpc_id
 }
 
-# CloudFront Module - CDN with WAF protection
-module "cloudfront" {
-  source = "../../modules/cloudfront"
-
-  environment            = var.environment
-  api_gateway_invoke_url = module.api_gateway.stage_invoke_url
-  waf_web_acl_arn        = module.waf.web_acl_arn
-  custom_domain_name     = var.custom_domain_name
-  certificate_arn        = module.certificate_manager.cloudfront_certificate_arn
-
-  tags = {
-    Environment = var.environment
-    Project     = "fields-of-the-world"
-  }
-  depends_on = [module.waf, module.api_gateway, module.certificate_manager]
+output "public_subnet_ids" {
+  description = "List of public subnet IDs"
+  value       = module.vpc.public_subnet_ids
 }
 
+output "private_subnet_ids" {
+  description = "List of private subnet IDs"
+  value       = module.vpc.private_subnet_ids
+}
+
+output "nat_gateway_ips" {
+  description = "Public IP addresses of the NAT Gateway(s)"
+  value       = module.vpc.nat_gateway_ips
+}
+
+output "s3_bucket_id" {
+  description = "The name of the model output s3 bucket"
+  value       = module.s3.output_bucket_id
+}
+
+output "s3_bucket_arn" {
+  description = "The ARN of the model output s3 bucket"
+  value       = module.s3.output_bucket_arn
+}
+
+output "s3_vpc_endpoint_id" {
+  description = "The ID of the S3 VPC endpoint"
+  value       = module.s3.vpc_endpoint_id
+}
+
+output "api_gateway_id" {
+  description = "The ID of the API Gateway HTTP API"
+  value       = module.api_gateway.api_id
+}
+
+output "api_gateway_endpoint" {
+  description = "The endpoint URL of the API Gateway"
+  value       = module.api_gateway.api_endpoint
+}
+
+output "api_gateway_stage_invoke_url" {
+  description = "The invoke URL for the API Gateway stage"
+  value       = module.api_gateway.stage_invoke_url
+}
+
+output "api_url" {
+  description = "The primary API URL (custom domain if configured, otherwise AWS generated)"
+  value       = var.custom_domain_name != "" ? "https://${var.custom_domain_name}" : module.api_gateway.stage_invoke_url
+}
+
+output "ssl_certificate_arn" {
+  description = "The ARN of the SSL certificate (empty if using AWS generated URL)"
+  value       = module.certificate_manager.certificate_arn
+}
+
+output "autoscaling_group_name" {
+  description = "The name of the Auto Scaling Group"
+  value       = module.ec2.autoscaling_group_name
+}
+
+output "launch_template_id" {
+  description = "The ID of the launch template"
+  value       = module.ec2.launch_template_id
+}
+
+output "ami_id" {
+  description = "The AMI ID used by the EC2 instances"
+  value       = module.ec2.ami_id
+}

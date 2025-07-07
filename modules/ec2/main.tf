@@ -75,17 +75,17 @@ resource "aws_launch_template" "fastapi_app" {
         #!/bin/bash
         apt-get update
         apt-get upgrade -y
-        
+
         # Ensure SSM agent is running (pre-installed on Deep Learning AMI)
         systemctl enable amazon-ssm-agent
         systemctl start amazon-ssm-agent
-        
+
         # Deploy FTW inference API as ubuntu user
         sudo -u ubuntu bash -c "cd /home/ubuntu && curl -L https://raw.githubusercontent.com/fieldsoftheworld/ftw-inference-api/main/deploy.sh | bash"
-        
+
         # Configure API for auth-disabled mode
-        sudo -u ubuntu sed -i 's/auth_disabled: false/auth_disabled: true/' /home/ubuntu/ftw-inference-api/server/config/config.yaml
-        
+        sudo -u ubuntu sed -i 's/auth_disabled: false/auth_disabled: true/' /home/ubuntu/ftw-inference-api/server/config/config.yaml          
+   
         # Restart the FTW inference API service
         systemctl restart ftw-inference-api
     EOF
