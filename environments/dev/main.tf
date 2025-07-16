@@ -76,9 +76,10 @@ module "iam" {
   source = "../../modules/iam"
 
   # Required variables
-  environment   = var.environment
-  region        = var.region
-  s3_bucket_arn = module.s3.output_bucket_arn
+  environment        = var.environment
+  region             = var.region
+  s3_bucket_arn      = module.s3.output_bucket_arn
+  dynamodb_table_arn = module.dynamodb.dynamodb_table_arn
 }
 
 module "api_gateway" {
@@ -126,9 +127,10 @@ resource "aws_route53_record" "api_custom_domain" {
 module "security_groups" {
   source = "../../modules/security-groups"
 
-  environment    = var.environment
-  vpc_id         = module.vpc.vpc_id
-  vpc_cidr_block = module.vpc.vpc_cidr_block
+  environment             = var.environment
+  vpc_id                  = module.vpc.vpc_id
+  vpc_cidr_block          = module.vpc.vpc_cidr_block
+  enable_vpc_endpoints_sg = true
 }
 
 module "alb" {
@@ -196,3 +198,17 @@ module "cloudfront" {
   depends_on = [module.waf, module.api_gateway, module.certificate_manager]
 }
 
+# DynamoDB Module - Project state management
+module "dynamodb" {
+  source = "../../modules/dynamodb"
+
+  environment                     = var.environment
+  vpc_id                          = module.vpc.vpc_id
+  private_subnet_ids              = module.vpc.private_subnet_ids
+  vpc_endpoint_security_group_ids = [module.security_groups.vpc_endpoints_security_group_id]
+
+  tags = {
+    Environment = var.environment
+    Project     = "fields-of-the-world"
+  }
+}

@@ -49,7 +49,7 @@ resource "aws_iam_instance_profile" "ec2_fastapi_app_profile" {
   }
 }
 
-# Cloudwatch and logging policy foir EC2
+# Cloudwatch and logging policy for EC2
 resource "aws_iam_role_policy" "ec2_cloudwatch_policy" {
   name = "${var.environment}-ec2-cloudwatch-policy"
   role = aws_iam_role.ec2_fastapi_app_role.id
@@ -109,6 +109,34 @@ resource "aws_iam_role_policy" "ec2_s3_policy" {
           "s3:GetBucketLocation"
         ]
         Resource = "*"
+      }
+    ]
+  })
+}
+
+# DynamoDB access policy for EC2
+resource "aws_iam_role_policy" "ec2_dynamodb_policy" {
+  name = "${var.environment}-ec2-dynamodb-policy"
+  role = aws_iam_role.ec2_fastapi_app_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:GetItem",
+          "dynamodb:PutItem", 
+          "dynamodb:UpdateItem",
+          "dynamodb:DeleteItem",
+          "dynamodb:Query",
+          "dynamodb:Scan",
+          "dynamodb:DescribeTable"
+        ]
+        Resource = [
+          var.dynamodb_table_arn,
+          "${var.dynamodb_table_arn}/*"
+        ]
       }
     ]
   })

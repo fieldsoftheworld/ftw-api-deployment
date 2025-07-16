@@ -24,3 +24,8 @@ variable "enable_alb_oidc_auth" {
   type        = bool
   default     = false
 }
+
+variable "dynamodb_table_arn" {
+  description = "DynamoDB table ARN for EC2 access"
+  type        = string
+}
