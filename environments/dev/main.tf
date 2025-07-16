@@ -142,7 +142,6 @@ module "alb" {
   private_subnet_ids     = module.vpc.private_subnet_ids
   alb_security_group_ids = [module.security_groups.alb_security_group_id]
 
-
   alb_config = {
     health_check_interval = 300
   }
