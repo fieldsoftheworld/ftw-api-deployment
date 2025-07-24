@@ -15,9 +15,9 @@ resource "aws_apigatewayv2_integration" "alb_integration" {
   # Timeout settings (max 30 seconds for API Gateway)
   timeout_milliseconds = 29000
 
-  # Request transformation - pass the original path to ALB
+  # Request transformation - prepend stage name to all paths for FastAPI
   request_parameters = {
-    "overwrite:path" = "$request.path"
+    "overwrite:path" = "/${var.stage_name}$request.path"
   }
 }
 # API GATEWAY ROUTES

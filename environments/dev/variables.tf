@@ -189,7 +189,3 @@ variable "custom_domain_name" {
   type        = string
   default     = ""
 }
-variable "dynamodb_table_arn" {
-  description = "DynamoDB table ARN for EC2 access"
-  type        = string
-}

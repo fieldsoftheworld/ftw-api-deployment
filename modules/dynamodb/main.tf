@@ -44,21 +44,17 @@ resource "aws_dynamodb_table" "ftw_inference_api_table" {
 # VPC ENDPOINT FOR DYNAMODB ACCESS
 
 resource "aws_vpc_endpoint" "dynamodb" {
-  vpc_id              = var.vpc_id
-  service_name        = "com.amazonaws.${data.aws_region.current.name}.dynamodb"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = var.private_subnet_ids
-  security_group_ids  = var.vpc_endpoint_security_group_ids
-  
-  # Enable private DNS resolution
-  private_dns_enabled = true
-  
+  vpc_id            = var.vpc_id
+  service_name      = "com.amazonaws.${data.aws_region.current.name}.dynamodb"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = var.route_table_ids
+
   # Policy to allow access to our specific table
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
+        Effect    = "Allow"
         Principal = "*"
         Action = [
           "dynamodb:GetItem",
@@ -70,9 +66,9 @@ resource "aws_vpc_endpoint" "dynamodb" {
           "dynamodb:DescribeTable"
         ]
         Resource = [
-  aws_dynamodb_table.ftw_inference_api_table.arn,          
-  "${aws_dynamodb_table.ftw_inference_api_table.arn}/*"     
-]
+          aws_dynamodb_table.ftw_inference_api_table.arn,
+          "${aws_dynamodb_table.ftw_inference_api_table.arn}/*"
+        ]
       }
     ]
   })

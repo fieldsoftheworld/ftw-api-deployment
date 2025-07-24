@@ -38,7 +38,6 @@ resource "aws_cloudfront_distribution" "api_distribution" {
   origin {
     domain_name = regex("https://([^/]+)", var.api_gateway_invoke_url)[0]
     origin_id   = "api-gateway-${var.environment}"
-    origin_path = "/v1"
 
     custom_origin_config {
       http_port              = 80

@@ -2,8 +2,8 @@
 terraform {
   required_providers {
     aws = {
-      source = "hashicorp/aws"
-      version = "~> 5.0"
+      source                = "hashicorp/aws"
+      version               = "~> 5.0"
       configuration_aliases = [aws]
     }
   }
@@ -35,8 +35,8 @@ resource "aws_wafv2_web_acl" "main" {
 
     visibility_config {
       cloudwatch_metrics_enabled = true
-      metric_name                 = "${var.environment}-CommonRuleSetMetric"
-      sampled_requests_enabled    = true
+      metric_name                = "${var.environment}-CommonRuleSetMetric"
+      sampled_requests_enabled   = true
     }
   }
 
@@ -58,8 +58,8 @@ resource "aws_wafv2_web_acl" "main" {
 
     visibility_config {
       cloudwatch_metrics_enabled = true
-      metric_name                 = "${var.environment}-KnownBadInputsMetric"
-      sampled_requests_enabled    = true
+      metric_name                = "${var.environment}-KnownBadInputsMetric"
+      sampled_requests_enabled   = true
     }
   }
 
@@ -81,8 +81,8 @@ resource "aws_wafv2_web_acl" "main" {
 
     visibility_config {
       cloudwatch_metrics_enabled = true
-      metric_name                 = "${var.environment}-RateLimitMetric"
-      sampled_requests_enabled    = true
+      metric_name                = "${var.environment}-RateLimitMetric"
+      sampled_requests_enabled   = true
     }
   }
 
@@ -104,8 +104,8 @@ resource "aws_wafv2_web_acl" "main" {
 
     visibility_config {
       cloudwatch_metrics_enabled = true
-      metric_name                 = "${var.environment}-IpReputationMetric"
-      sampled_requests_enabled    = true
+      metric_name                = "${var.environment}-IpReputationMetric"
+      sampled_requests_enabled   = true
     }
   }
 
@@ -127,15 +127,15 @@ resource "aws_wafv2_web_acl" "main" {
 
     visibility_config {
       cloudwatch_metrics_enabled = true
-      metric_name                 = "${var.environment}-AnonymousIpMetric"
-      sampled_requests_enabled    = true
+      metric_name                = "${var.environment}-AnonymousIpMetric"
+      sampled_requests_enabled   = true
     }
   }
 
   visibility_config {
     cloudwatch_metrics_enabled = true
-    metric_name                 = "${var.environment}-WebACL"
-    sampled_requests_enabled    = true
+    metric_name                = "${var.environment}-WebACL"
+    sampled_requests_enabled   = true
   }
 
   tags = merge(
