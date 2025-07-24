@@ -17,6 +17,14 @@ terraform {
   }
 }
 
+resource "random_id" "cloudfront_secret" {
+  byte_length = 16
+}
+
+locals {
+  cloudfront_secret = "ftw-cf-secret-${random_id.cloudfront_secret.hex}"
+}
+
 provider "aws" {
   region = var.region
 }
@@ -190,6 +198,7 @@ module "cloudfront" {
   waf_web_acl_arn        = module.waf.web_acl_arn
   custom_domain_name     = var.custom_domain_name
   certificate_arn        = module.certificate_manager.cloudfront_certificate_arn
+  cloudfront_secret_header = local.cloudfront_secret  
 
   tags = {
     Environment = var.environment

@@ -31,3 +31,8 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+variable "cloudfront_secret_header" {
+  description = "Secret header value sent by CloudFront to API Gateway for origin validation"
+  type        = string
+  sensitive   = true
+}

@@ -39,6 +39,12 @@ resource "aws_cloudfront_distribution" "api_distribution" {
     domain_name = regex("https://([^/]+)", var.api_gateway_invoke_url)[0]
     origin_id   = "api-gateway-${var.environment}"
 
+# Points to the API Gateway 
+    custom_header {
+    name  = "X-CloudFront-Secret"
+    value = var.cloudfront_secret_header
+  }
+
     custom_origin_config {
       http_port              = 80
       https_port             = 443
