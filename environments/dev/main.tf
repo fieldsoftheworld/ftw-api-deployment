@@ -186,7 +186,7 @@ module "cloudfront" {
   source = "../../modules/cloudfront"
 
   environment            = var.environment
-  api_gateway_invoke_url = module.api_gateway.stage_invoke_url
+  api_gateway_invoke_url = module.api_gateway.api_endpoint
   waf_web_acl_arn        = module.waf.web_acl_arn
   custom_domain_name     = var.custom_domain_name
   certificate_arn        = module.certificate_manager.cloudfront_certificate_arn
@@ -206,6 +206,10 @@ module "dynamodb" {
   vpc_id                          = module.vpc.vpc_id
   private_subnet_ids              = module.vpc.private_subnet_ids
   vpc_endpoint_security_group_ids = [module.security_groups.vpc_endpoints_security_group_id]
+  route_table_ids = concat(
+    [module.vpc.public_route_table_id],
+    module.vpc.private_route_table_ids
+  )
 
   tags = {
     Environment = var.environment

@@ -34,8 +34,8 @@ output "api_gateway_role_name" {
 output "policies_attached" {
   description = "List of policies and features enabled for the EC2 role"
   value = {
-    cloudwatch_logs        = true
-    s3_access             = true
+    cloudwatch_logs = true
+    s3_access       = true
   }
 }
 

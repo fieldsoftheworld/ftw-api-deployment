@@ -50,7 +50,7 @@ resource "aws_lb_target_group" "fastapi" {
     unhealthy_threshold = var.alb_config.health_check_unhealthy_threshold
     timeout             = var.alb_config.health_check_timeout
     interval            = var.alb_config.health_check_interval
-    path                = var.health_check_path
+    path                = "/v1${var.health_check_path}"
     matcher             = var.alb_config.health_check_matcher
     port                = "traffic-port"
     protocol            = "HTTP"

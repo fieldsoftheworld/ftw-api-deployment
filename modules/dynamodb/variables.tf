@@ -35,3 +35,8 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "route_table_ids" {
+  description = "List of route table IDs for DynamoDB Gateway VPC endpoint"
+  type        = list(string)
+}
