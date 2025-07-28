@@ -80,6 +80,7 @@ module "iam" {
   region             = var.region
   s3_bucket_arn      = module.s3.output_bucket_arn
   dynamodb_table_arn = module.dynamodb.dynamodb_table_arn
+  sqs_queue_arn      = module.sqs.task_queue_arn
 }
 
 module "api_gateway" {
@@ -211,6 +212,17 @@ module "dynamodb" {
     module.vpc.private_route_table_ids
   )
 
+  tags = {
+    Environment = var.environment
+    Project     = "fields-of-the-world"
+  }
+}
+# SQS Module - Task queue to replace asyncio.Queue
+module "sqs" {
+  source = "../../modules/sqs"
+  
+  environment = var.environment
+  
   tags = {
     Environment = var.environment
     Project     = "fields-of-the-world"
