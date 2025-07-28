@@ -26,6 +26,9 @@ resource "aws_apigatewayv2_route" "root_route" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "GET /"
   target    = "integrations/${aws_apigatewayv2_integration.alb_integration.id}"
+  
+ authorization_type = var.enable_cloudfront_protection ? "CUSTOM" : "NONE"
+ authorizer_id     = var.enable_cloudfront_protection ? aws_apigatewayv2_authorizer.cloudfront_authorizer.id : null 
 }
 
 # Route for PUT /example - Compute field boundaries and return GeoJSON
@@ -33,6 +36,9 @@ resource "aws_apigatewayv2_route" "example_route" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "PUT /example"
   target    = "integrations/${aws_apigatewayv2_integration.alb_integration.id}"
+
+  authorization_type = var.enable_cloudfront_protection ? "CUSTOM" : "NONE"
+  authorizer_id     = var.enable_cloudfront_protection ? aws_apigatewayv2_authorizer.cloudfront_authorizer.id : null 
 }
 
 # Route for GET /health - Health check endpoint
@@ -40,6 +46,10 @@ resource "aws_apigatewayv2_route" "health_route" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "GET /health"
   target    = "integrations/${aws_apigatewayv2_integration.alb_integration.id}"
+
+  authorization_type = var.enable_cloudfront_protection ? "CUSTOM" : "NONE"
+  authorizer_id     = var.enable_cloudfront_protection ? aws_apigatewayv2_authorizer.cloudfront_authorizer.id : null 
+
 }
 
 # PROJECT MANAGEMENT ROUTES
@@ -49,6 +59,9 @@ resource "aws_apigatewayv2_route" "create_project_route" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "POST /projects"
   target    = "integrations/${aws_apigatewayv2_integration.alb_integration.id}"
+
+  authorization_type = var.enable_cloudfront_protection ? "CUSTOM" : "NONE"
+  authorizer_id     = var.enable_cloudfront_protection ? aws_apigatewayv2_authorizer.cloudfront_authorizer.id : null 
 }
 
 # Route for GET /projects - List all projects
@@ -56,6 +69,9 @@ resource "aws_apigatewayv2_route" "list_projects_route" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "GET /projects"
   target    = "integrations/${aws_apigatewayv2_integration.alb_integration.id}"
+
+  authorization_type = var.enable_cloudfront_protection ? "CUSTOM" : "NONE"
+  authorizer_id     = var.enable_cloudfront_protection ? aws_apigatewayv2_authorizer.cloudfront_authorizer.id : null 
 }
 
 # Route for GET /projects/{project_id} - Get project details
@@ -63,6 +79,9 @@ resource "aws_apigatewayv2_route" "get_project_route" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "GET /projects/{project_id}"
   target    = "integrations/${aws_apigatewayv2_integration.alb_integration.id}"
+
+  authorization_type = var.enable_cloudfront_protection ? "CUSTOM" : "NONE"
+  authorizer_id     = var.enable_cloudfront_protection ? aws_apigatewayv2_authorizer.cloudfront_authorizer.id : null 
 }
 
 # Route for GET /projects/{project_id}/status - Get project status
@@ -70,6 +89,9 @@ resource "aws_apigatewayv2_route" "get_project_status_route" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "GET /projects/{project_id}/status"
   target    = "integrations/${aws_apigatewayv2_integration.alb_integration.id}"
+
+  authorization_type = var.enable_cloudfront_protection ? "CUSTOM" : "NONE"
+  authorizer_id     = var.enable_cloudfront_protection ? aws_apigatewayv2_authorizer.cloudfront_authorizer.id : null 
 }
 
 # Route for DELETE /projects/{project_id} - Delete project
@@ -77,6 +99,9 @@ resource "aws_apigatewayv2_route" "delete_project_route" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "DELETE /projects/{project_id}"
   target    = "integrations/${aws_apigatewayv2_integration.alb_integration.id}"
+
+  authorization_type = var.enable_cloudfront_protection ? "CUSTOM" : "NONE"
+  authorizer_id     = var.enable_cloudfront_protection ? aws_apigatewayv2_authorizer.cloudfront_authorizer.id : null 
 }
 
 # INFERENCE ROUTES
@@ -86,6 +111,9 @@ resource "aws_apigatewayv2_route" "inference_route" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "PUT /projects/{project_id}/inference"
   target    = "integrations/${aws_apigatewayv2_integration.alb_integration.id}"
+
+  authorization_type = var.enable_cloudfront_protection ? "CUSTOM" : "NONE"
+  authorizer_id     = var.enable_cloudfront_protection ? aws_apigatewayv2_authorizer.cloudfront_authorizer.id : null 
 }
 
 # POLYGONIZATION ROUTES
@@ -95,6 +123,9 @@ resource "aws_apigatewayv2_route" "polygonization_route" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "PUT /projects/{project_id}/polygons"
   target    = "integrations/${aws_apigatewayv2_integration.alb_integration.id}"
+
+  authorization_type = var.enable_cloudfront_protection ? "CUSTOM" : "NONE"
+  authorizer_id     = var.enable_cloudfront_protection ? aws_apigatewayv2_authorizer.cloudfront_authorizer.id : null 
 }
 
 # TASK MANAGEMENT ROUTES
@@ -104,5 +135,8 @@ resource "aws_apigatewayv2_route" "get_task_status_route" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "GET /projects/{project_id}/tasks/{task_id}"
   target    = "integrations/${aws_apigatewayv2_integration.alb_integration.id}"
+
+  authorization_type = var.enable_cloudfront_protection ? "CUSTOM" : "NONE"
+  authorizer_id     = var.enable_cloudfront_protection ? aws_apigatewayv2_authorizer.cloudfront_authorizer.id : null 
 }
 

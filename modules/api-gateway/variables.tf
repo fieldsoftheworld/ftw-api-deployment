@@ -53,3 +53,20 @@ variable "vpc_link_security_group_ids" {
   description = "List of security group IDs for VPC Link"
   type        = list(string)
 }
+variable "lambda_authorizer_invoke_arn" {
+  description = "Lambda authorizer invoke ARN"
+  type        = string
+  default     = ""
+}
+
+variable "lambda_authorizer_function_name" {
+  description = "Lambda authorizer function name"
+  type        = string
+  default     = ""
+}
+
+variable "enable_cloudfront_protection" {
+  description = "Enable CloudFront secret header protection"
+  type        = bool
+  default     = false
+}

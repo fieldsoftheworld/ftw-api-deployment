@@ -80,6 +80,25 @@ module "s3" {
   )
 }
 
+# DynamoDB Module - Project state management
+module "dynamodb" {
+  source = "../../modules/dynamodb"
+
+  environment                     = var.environment
+  vpc_id                          = module.vpc.vpc_id
+  private_subnet_ids              = module.vpc.private_subnet_ids
+  vpc_endpoint_security_group_ids = [module.security_groups.vpc_endpoints_security_group_id]
+  route_table_ids = concat(
+    [module.vpc.public_route_table_id],
+    module.vpc.private_route_table_ids
+  )
+
+  tags = {
+    Environment = var.environment
+    Project     = "fields-of-the-world"
+  }
+}
+
 module "iam" {
   source = "../../modules/iam"
 
@@ -112,7 +131,9 @@ module "api_gateway" {
     custom_domain_name       = var.custom_domain_name
     certificate_arn          = module.certificate_manager.certificate_arn
   }
-
+  enable_cloudfront_protection    = true
+  lambda_authorizer_invoke_arn    = module.lambda_authorizer.authorizer_invoke_arn
+  lambda_authorizer_function_name = module.lambda_authorizer.authorizer_function_name
   depends_on = [module.certificate_manager]
 }
 
@@ -206,22 +227,17 @@ module "cloudfront" {
   }
   depends_on = [module.waf, module.api_gateway, module.certificate_manager]
 }
-
-# DynamoDB Module - Project state management
-module "dynamodb" {
-  source = "../../modules/dynamodb"
-
-  environment                     = var.environment
-  vpc_id                          = module.vpc.vpc_id
-  private_subnet_ids              = module.vpc.private_subnet_ids
-  vpc_endpoint_security_group_ids = [module.security_groups.vpc_endpoints_security_group_id]
-  route_table_ids = concat(
-    [module.vpc.public_route_table_id],
-    module.vpc.private_route_table_ids
-  )
-
+# Lambda Authorizer for CloudFront secret validation
+module "lambda_authorizer" {
+  source = "../../modules/lambda-authorizer"
+  
+  environment       = var.environment
+  cloudfront_secret = local.cloudfront_secret
+  
   tags = {
     Environment = var.environment
     Project     = "fields-of-the-world"
   }
 }
+
+
