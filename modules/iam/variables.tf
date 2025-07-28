@@ -29,3 +29,7 @@ variable "dynamodb_table_arn" {
   description = "DynamoDB table ARN for EC2 access"
   type        = string
 }
+variable "sqs_queue_arn" {
+  description = "SQS queue ARN for EC2 access"
+  type        = string
+}
