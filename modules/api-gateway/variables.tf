@@ -70,3 +70,24 @@ variable "enable_cloudfront_protection" {
   type        = bool
   default     = false
 }
+variable "api_routes" {
+  description = "Map of API routes to create"
+  type = map(object({
+    route_key = string
+   # methods   = list(string)
+  }))
+  
+  default = {
+    "root"                  = { route_key = "GET /", methods = ["GET"] }
+    "example"               = { route_key = "PUT /example", methods = ["PUT"] }
+    "health"                = { route_key = "GET /health", methods = ["GET"] }
+    "create_project"        = { route_key = "POST /projects", methods = ["POST"] }
+    "list_projects"         = { route_key = "GET /projects", methods = ["GET"] }
+    "get_project"           = { route_key = "GET /projects/{project_id}", methods = ["GET"] }
+    "get_project_status"    = { route_key = "GET /projects/{project_id}/status", methods = ["GET"] }
+    "delete_project"        = { route_key = "DELETE /projects/{project_id}", methods = ["DELETE"] }
+    "inference"             = { route_key = "PUT /projects/{project_id}/inference", methods = ["PUT"] }
+    "polygonization"        = { route_key = "PUT /projects/{project_id}/polygons", methods = ["PUT"] }
+    "get_task_status"       = { route_key = "GET /projects/{project_id}/tasks/{task_id}", methods = ["GET"] }
+  }
+}

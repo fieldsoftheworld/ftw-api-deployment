@@ -137,7 +137,7 @@ resource "aws_lambda_permission" "authorizer_permission" {
   action        = "lambda:InvokeFunction"
   function_name = var.lambda_authorizer_function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.main.execution_arn}/*/*"
+  source_arn    = "${aws_apigatewayv2_api.main.execution_arn}/authorizers/${aws_apigatewayv2_authorizer.cloudfront_authorizer.id}"
 }
 
 

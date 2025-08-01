@@ -35,7 +35,6 @@ override.tf.json
 # example: *tfplan*
 
 # Ignore CLI configuration files
-.terraformrc
 terraform.rc
 
 # Block Binary zip files

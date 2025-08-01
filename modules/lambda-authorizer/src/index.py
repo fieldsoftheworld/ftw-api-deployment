@@ -1,52 +1,65 @@
 import json
 import os
+import logging
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
-    """
-    Lambda authorizer to validate CloudFront secret header
-    Returns 403 if X-CloudFront-Secret header is missing or incorrect
-    """
     
-    # Get expected secret from environment variable
-    expected_secret = os.environ.get('CLOUDFRONT_SECRET')
+    #Lambda authorizer to validate CloudFront secret header
+    #Returns 403 if X-CloudFront-Secret header is missing or incorrect
     
-    if not expected_secret:
-        print("ERROR: CLOUDFRONT_SECRET environment variable not set")
-        return generate_policy('Deny', event['routeArn'])
-    
-    # Get headers from the request
-    headers = event.get('headers', {})
-    
-    # Check for X-CloudFront-Secret header (case-insensitive)
-    cloudfront_secret = None
-    for header_name, header_value in headers.items():
-        if header_name.lower() == 'x-cloudfront-secret':
-            cloudfront_secret = header_value
-            break
-    
-    if not cloudfront_secret:
-        print("DENIED: Missing X-CloudFront-Secret header")
-        return generate_policy('Deny', event['routeArn'])
-    
-    if cloudfront_secret != expected_secret:
-        print("DENIED: Invalid X-CloudFront-Secret header")
-        return generate_policy('Deny', event['routeArn'])
-    
-    print("ALLOWED: Valid CloudFront secret header")
-    return generate_policy('Allow', event['routeArn'])
+    try:
+        # Validate event structure
+        if not event or 'headers' not in event:
+            logger.error("Malformed event: missing headers")
+            return deny_response("Malformed request")
+        
+        # Get headers (handle case variations)
+        headers = event.get('headers', {})
+        
+        # Handle case-insensitive header lookup
+        secret_header = None
+        for key, value in headers.items():
+            if key.lower() == 'x-cloudfront-secret':
+                secret_header = value
+                break
+        
+        # Get expected secret
+        expected_secret = os.environ.get('CLOUDFRONT_SECRET')
+        if not expected_secret:
+            logger.error("CLOUDFRONT_SECRET environment variable not set")
+            return deny_response("Configuration error")
+        
+        # Validate secret
+        if not secret_header:
+            logger.info("Missing CloudFront secret header")
+            return deny_response("Missing authorization header")
+        
+        if secret_header != expected_secret:
+            logger.warning("Invalid CloudFront secret header")
+            return deny_response("Invalid authorization")
+        
+        logger.info("CloudFront secret header validated successfully")
+        return allow_response()
+        
+    except Exception as e:
+        logger.error(f"Unexpected error in authorizer: {str(e)}")
+        return deny_response("Authorization error")
 
-def generate_policy(effect, resource):
-    """Generate IAM policy for API Gateway"""
+def allow_response():
     return {
-        'principalId': 'cloudfront-user',
-        'policyDocument': {
-            'Version': '2012-10-17',
-            'Statement': [
-                {
-                    'Action': 'execute-api:Invoke',
-                    'Effect': effect,
-                    'Resource': resource
-                }
-            ]
+        'isAuthorized': True,
+        'context': {
+            'source': 'cloudfront'
+        }
+    }
+
+def deny_response(reason):
+    return {
+        'isAuthorized': False,
+        'context': {
+            'reason': reason
         }
     }
