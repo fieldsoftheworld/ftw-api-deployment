@@ -53,3 +53,41 @@ variable "vpc_link_security_group_ids" {
   description = "List of security group IDs for VPC Link"
   type        = list(string)
 }
+variable "lambda_authorizer_invoke_arn" {
+  description = "Lambda authorizer invoke ARN"
+  type        = string
+  default     = ""
+}
+
+variable "lambda_authorizer_function_name" {
+  description = "Lambda authorizer function name"
+  type        = string
+  default     = ""
+}
+
+variable "enable_cloudfront_protection" {
+  description = "Enable CloudFront secret header protection"
+  type        = bool
+  default     = false
+}
+variable "api_routes" {
+  description = "Map of API routes to create"
+  type = map(object({
+    route_key = string
+   # methods   = list(string)
+  }))
+  
+  default = {
+    "root"                  = { route_key = "GET /", methods = ["GET"] }
+    "example"               = { route_key = "PUT /example", methods = ["PUT"] }
+    "health"                = { route_key = "GET /health", methods = ["GET"] }
+    "create_project"        = { route_key = "POST /projects", methods = ["POST"] }
+    "list_projects"         = { route_key = "GET /projects", methods = ["GET"] }
+    "get_project"           = { route_key = "GET /projects/{project_id}", methods = ["GET"] }
+    "get_project_status"    = { route_key = "GET /projects/{project_id}/status", methods = ["GET"] }
+    "delete_project"        = { route_key = "DELETE /projects/{project_id}", methods = ["DELETE"] }
+    "inference"             = { route_key = "PUT /projects/{project_id}/inference", methods = ["PUT"] }
+    "polygonization"        = { route_key = "PUT /projects/{project_id}/polygons", methods = ["PUT"] }
+    "get_task_status"       = { route_key = "GET /projects/{project_id}/tasks/{task_id}", methods = ["GET"] }
+  }
+}

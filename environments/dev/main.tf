@@ -17,6 +17,14 @@ terraform {
   }
 }
 
+resource "random_id" "cloudfront_secret" {
+  byte_length = 16
+}
+
+locals {
+  cloudfront_secret = "ftw-cf-secret-${random_id.cloudfront_secret.hex}"
+}
+
 provider "aws" {
   region = var.region
 }
@@ -72,6 +80,25 @@ module "s3" {
   )
 }
 
+# DynamoDB Module - Project state management
+module "dynamodb" {
+  source = "../../modules/dynamodb"
+
+  environment                     = var.environment
+  vpc_id                          = module.vpc.vpc_id
+  private_subnet_ids              = module.vpc.private_subnet_ids
+  vpc_endpoint_security_group_ids = [module.security_groups.vpc_endpoints_security_group_id]
+  route_table_ids = concat(
+    [module.vpc.public_route_table_id],
+    module.vpc.private_route_table_ids
+  )
+
+  tags = {
+    Environment = var.environment
+    Project     = "fields-of-the-world"
+  }
+}
+
 module "iam" {
   source = "../../modules/iam"
 
@@ -80,6 +107,7 @@ module "iam" {
   region             = var.region
   s3_bucket_arn      = module.s3.output_bucket_arn
   dynamodb_table_arn = module.dynamodb.dynamodb_table_arn
+
 }
 
 module "api_gateway" {
@@ -104,7 +132,9 @@ module "api_gateway" {
     custom_domain_name       = var.custom_domain_name
     certificate_arn          = module.certificate_manager.certificate_arn
   }
-
+  enable_cloudfront_protection    = true
+  lambda_authorizer_invoke_arn    = module.lambda_authorizer.authorizer_invoke_arn
+  lambda_authorizer_function_name = module.lambda_authorizer.authorizer_function_name
   depends_on = [module.certificate_manager]
 }
 
@@ -190,6 +220,7 @@ module "cloudfront" {
   waf_web_acl_arn        = module.waf.web_acl_arn
   custom_domain_name     = var.custom_domain_name
   certificate_arn        = module.certificate_manager.cloudfront_certificate_arn
+  cloudfront_secret_header = local.cloudfront_secret  
 
   tags = {
     Environment = var.environment
@@ -197,22 +228,17 @@ module "cloudfront" {
   }
   depends_on = [module.waf, module.api_gateway, module.certificate_manager]
 }
-
-# DynamoDB Module - Project state management
-module "dynamodb" {
-  source = "../../modules/dynamodb"
-
-  environment                     = var.environment
-  vpc_id                          = module.vpc.vpc_id
-  private_subnet_ids              = module.vpc.private_subnet_ids
-  vpc_endpoint_security_group_ids = [module.security_groups.vpc_endpoints_security_group_id]
-  route_table_ids = concat(
-    [module.vpc.public_route_table_id],
-    module.vpc.private_route_table_ids
-  )
-
+# Lambda Authorizer for CloudFront secret validation
+module "lambda_authorizer" {
+  source = "../../modules/lambda-authorizer"
+  
+  environment       = var.environment
+  cloudfront_secret = local.cloudfront_secret
+  
   tags = {
     Environment = var.environment
     Project     = "fields-of-the-world"
   }
 }
+
+
