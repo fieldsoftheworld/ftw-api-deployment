@@ -54,30 +54,24 @@ resource "aws_sqs_queue" "task_queue" {
 resource "aws_sqs_queue_policy" "task_queue_policy" {
   queue_url = aws_sqs_queue.task_queue.id
 
-  policy = jsonencode({
+policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
-        Principal = {
-          AWS = "*"
-        }
-        Action = [
-          "sqs:ReceiveMessage",
-          "sqs:DeleteMessage",
-          "sqs:SendMessage",
-          "sqs:GetQueueAttributes"
+        Sid    = "DenyInsecureConnections"
+        Effect = "Deny"
+        Principal = "*" 
+        Action = "sqs:*"
+        Resource = [
+          aws_sqs_queue.task_queue.arn,
+          aws_sqs_queue.task_dlq.arn
         ]
-        Resource = aws_sqs_queue.task_queue.arn
         Condition = {
-          StringEquals = {
-            "aws:SourceAccount" = data.aws_caller_identity.current.account_id
+          Bool = {
+            "aws:SecureTransport" = "false"
           }
         }
       }
     ]
   })
-}
-
-# Data source for account ID
-data "aws_caller_identity" "current" {}
+} 

@@ -212,7 +212,7 @@ resource "aws_iam_role_policy" "ec2_sqs_policy" {
         ]
         Resource = [
           var.sqs_queue_arn,
-          "${replace(var.sqs_queue_arn, ":task-queue", ":task-dlq")}"
+          var.sqs_dlq_arn
         ]
       }
     ]

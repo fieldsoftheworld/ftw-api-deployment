@@ -108,6 +108,7 @@ module "iam" {
   s3_bucket_arn      = module.s3.output_bucket_arn
   dynamodb_table_arn = module.dynamodb.dynamodb_table_arn
   sqs_queue_arn      = module.sqs.task_queue_arn
+  sqs_dlq_arn        = module.sqs.dlq_arn
 
 }
 

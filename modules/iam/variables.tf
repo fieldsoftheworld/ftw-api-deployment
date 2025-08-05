@@ -33,3 +33,7 @@ variable "sqs_queue_arn" {
   description = "SQS queue ARN for EC2 access"
   type        = string
 }
+variable "sqs_dlq_arn" {
+  description = "SQS dead letter queue ARN for EC2 access"
+  type        = string
+}
