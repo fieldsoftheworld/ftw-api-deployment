@@ -54,18 +54,27 @@ resource "aws_sqs_queue" "task_queue" {
 resource "aws_sqs_queue_policy" "task_queue_policy" {
   queue_url = aws_sqs_queue.task_queue.id
 
-policy = jsonencode({
+  policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Sid    = "DenyInsecureConnections"
+        Sid    = "DenyInsecureTaskQueue"
         Effect = "Deny"
         Principal = "*" 
         Action = "sqs:*"
-        Resource = [
-          aws_sqs_queue.task_queue.arn,
-          aws_sqs_queue.task_dlq.arn
-        ]
+        Resource = aws_sqs_queue.task_queue.arn
+        Condition = {
+          Bool = {
+            "aws:SecureTransport" = "false"
+          }
+        }
+      },
+      {
+        Sid    = "DenyInsecureDLQ"
+        Effect = "Deny"
+        Principal = "*" 
+        Action = "sqs:*"
+        Resource = aws_sqs_queue.task_dlq.arn
         Condition = {
           Bool = {
             "aws:SecureTransport" = "false"
@@ -74,4 +83,4 @@ policy = jsonencode({
       }
     ]
   })
-} 
+}
