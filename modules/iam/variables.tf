@@ -25,8 +25,18 @@ variable "enable_alb_oidc_auth" {
   default     = false
 }
 
-variable "dynamodb_table_arn" {
-  description = "DynamoDB table ARN for EC2 access"
+variable "projects_table_arn" {
+  description = "Projects DynamoDB table ARN for EC2 access"
+  type        = string
+}
+
+variable "images_table_arn" {
+  description = "Images DynamoDB table ARN for EC2 access"
+  type        = string
+}
+
+variable "inference_results_table_arn" {
+  description = "Inference Results DynamoDB table ARN for EC2 access"
   type        = string
 }
 variable "sqs_queue_arn" {
