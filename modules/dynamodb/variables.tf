@@ -30,6 +30,18 @@ variable "write_capacity" {
   default     = 5
 }
 
+variable "gsi_read_capacity" {
+  description = "Read capacity units for Global Secondary Indexes"
+  type        = number
+  default     = 5
+}
+
+variable "gsi_write_capacity" {
+  description = "Write capacity units for Global Secondary Indexes"
+  type        = number
+  default     = 5
+}
+
 variable "tags" {
   description = "Tags to apply to DynamoDB resources"
   type        = map(string)

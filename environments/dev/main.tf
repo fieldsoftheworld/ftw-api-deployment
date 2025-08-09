@@ -103,12 +103,14 @@ module "iam" {
   source = "../../modules/iam"
 
   # Required variables
-  environment        = var.environment
-  region             = var.region
-  s3_bucket_arn      = module.s3.output_bucket_arn
-  dynamodb_table_arn = module.dynamodb.dynamodb_table_arn
-  sqs_queue_arn      = module.sqs.task_queue_arn
-  sqs_dlq_arn        = module.sqs.dlq_arn
+  environment                 = var.environment
+  region                      = var.region
+  s3_bucket_arn               = module.s3.output_bucket_arn
+  projects_table_arn          = module.dynamodb.projects_table_arn
+  images_table_arn            = module.dynamodb.images_table_arn
+  inference_results_table_arn = module.dynamodb.inference_results_table_arn
+  sqs_queue_arn               = module.sqs.task_queue_arn
+  sqs_dlq_arn                 = module.sqs.dlq_arn
 
 }
 
@@ -137,7 +139,7 @@ module "api_gateway" {
   enable_cloudfront_protection    = true
   lambda_authorizer_invoke_arn    = module.lambda_authorizer.authorizer_invoke_arn
   lambda_authorizer_function_name = module.lambda_authorizer.authorizer_function_name
-  depends_on = [module.certificate_manager]
+  depends_on                      = [module.certificate_manager]
 }
 
 # Route53 record for custom domain
@@ -217,12 +219,12 @@ module "waf" {
 module "cloudfront" {
   source = "../../modules/cloudfront"
 
-  environment            = var.environment
-  api_gateway_invoke_url = module.api_gateway.api_endpoint
-  waf_web_acl_arn        = module.waf.web_acl_arn
-  custom_domain_name     = var.custom_domain_name
-  certificate_arn        = module.certificate_manager.cloudfront_certificate_arn
-  cloudfront_secret_header = local.cloudfront_secret  
+  environment              = var.environment
+  api_gateway_invoke_url   = module.api_gateway.api_endpoint
+  waf_web_acl_arn          = module.waf.web_acl_arn
+  custom_domain_name       = var.custom_domain_name
+  certificate_arn          = module.certificate_manager.cloudfront_certificate_arn
+  cloudfront_secret_header = local.cloudfront_secret
 
   tags = {
     Environment = var.environment
@@ -233,10 +235,10 @@ module "cloudfront" {
 # Lambda Authorizer for CloudFront secret validation
 module "lambda_authorizer" {
   source = "../../modules/lambda-authorizer"
-  
+
   environment       = var.environment
   cloudfront_secret = local.cloudfront_secret
-  
+
   tags = {
     Environment = var.environment
     Project     = "fields-of-the-world"
@@ -246,9 +248,9 @@ module "lambda_authorizer" {
 # SQS Module - Task queue to replace asyncio.Queue
 module "sqs" {
   source = "../../modules/sqs"
-  
+
   environment = var.environment
-  
+
   tags = {
     Environment = var.environment
     Project     = "fields-of-the-world"
