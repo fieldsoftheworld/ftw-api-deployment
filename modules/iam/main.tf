@@ -222,3 +222,23 @@ resource "aws_iam_role_policy" "ec2_sqs_policy" {
     ]
   })
 }
+
+# Secrets Manager access policy for EC2
+resource "aws_iam_role_policy" "ec2_secrets_manager_policy" {
+  name = "${var.environment}-ec2-secrets-manager-policy"
+  role = aws_iam_role.ec2_fastapi_app_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
