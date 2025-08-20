@@ -193,6 +193,7 @@ module "ec2" {
   security_group_ids    = [module.security_groups.ec2_fastapi_security_group_id]
   instance_profile_name = module.iam.ec2_fastapi_instance_profile_name
   target_group_arn      = module.alb.target_group_arn
+  fastapi_app_port      = var.fastapi_app_port
 
   # Optional variables
   instance_type = var.instance_type

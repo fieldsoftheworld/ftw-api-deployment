@@ -70,26 +70,11 @@ resource "aws_launch_template" "fastapi_app" {
     http_put_response_hop_limit = 2
   }
 
-  # User data script for Ubuntu (Deep Learning AMI)
-  user_data = base64encode(<<-EOF
-        #!/bin/bash
-        apt-get update
-        apt-get upgrade -y
-
-        # Ensure SSM agent is running (pre-installed on Deep Learning AMI)
-        systemctl enable amazon-ssm-agent
-        systemctl start amazon-ssm-agent
-
-        # Deploy FTW inference API as ubuntu user
-        sudo -u ubuntu bash -c "cd /home/ubuntu && curl -L https://raw.githubusercontent.com/fieldsoftheworld/ftw-inference-api/main/deploy.sh | bash"
-
-        # Configure API for auth-disabled mode
-        sudo -u ubuntu sed -i 's/auth_disabled: false/auth_disabled: true/' /home/ubuntu/ftw-inference-api/server/config/config.yaml          
-   
-        # Restart the FTW inference API service
-        systemctl restart ftw-inference-api
-    EOF
-  )
+  # Simplified user data script with integrated hardening
+  user_data = base64encode(templatefile("${path.module}/scripts/user-data.sh", {
+    ENVIRONMENT      = var.environment
+    FASTAPI_APP_PORT = var.fastapi_app_port
+  }))
 
   tag_specifications {
     resource_type = "instance"

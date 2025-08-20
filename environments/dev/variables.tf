@@ -184,6 +184,12 @@ variable "asg_config" {
   }
 }
 
+variable "fastapi_app_port" {
+  description = "Port number for the FastAPI application"
+  type        = number
+  default     = 8000
+}
+
 variable "custom_domain_name" {
   description = "Custom domain name for the FastAPI application (optional, leave empty for no custom domain)"
   type        = string
