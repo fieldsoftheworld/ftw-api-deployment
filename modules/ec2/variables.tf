@@ -69,3 +69,9 @@ variable "asg_config" {
     error_message = "Health check grace period must be between 0 and 7200 seconds."
   }
 }
+
+variable "fastapi_app_port" {
+  description = "Port number for the FastAPI application"
+  type        = number
+  default     = 8000
+}
