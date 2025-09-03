@@ -37,3 +37,8 @@ output "ami_id" {
   description = "The AMI ID used by the EC2 instances"
   value       = module.ec2.ami_id
 }
+
+output "cross_account_s3_role_arn" {
+  description = "The ARN of the cross-account S3 role"
+  value       = module.iam.cross_account_s3_role_arn
+}

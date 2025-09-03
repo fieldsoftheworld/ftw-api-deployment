@@ -195,3 +195,27 @@ variable "custom_domain_name" {
   type        = string
   default     = ""
 }
+
+variable "enable_cross_account_s3" {
+  description = "Enable cross-account S3 access role for external bucket access"
+  type        = bool
+  default     = false
+}
+
+variable "cross_account_s3_bucket_arns" {
+  description = "List of external S3 bucket ARNs that EC2 instances should have access to"
+  type        = list(string)
+  default     = []
+}
+
+variable "external_role_arn" {
+  description = "ARN of external IAM role provided by bucket owner for cross-account access"
+  type        = string
+  default     = ""
+}
+
+variable "external_role_id" {
+  description = "External ID required to assume the external role (for additional security)"
+  type        = string
+  default     = ""
+}

@@ -84,6 +84,103 @@ resource "aws_iam_role_policy" "ec2_cloudwatch_policy" {
   })
 }
 
+# Cross-account S3 access role that external accounts can reference in their bucket policies
+resource "aws_iam_role" "cross_account_s3_role" {
+  count = var.enable_cross_account_s3 ? 1 : 0
+  name  = "${var.environment}-cross-account-s3-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          AWS = aws_iam_role.ec2_fastapi_app_role.arn
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+
+  tags = {
+    Name        = "${var.environment}-cross-account-s3-role"
+    Environment = var.environment
+    Purpose     = "cross-account-s3-access"
+  }
+}
+
+# Policy for the cross-account role to access external S3 buckets
+resource "aws_iam_role_policy" "cross_account_s3_policy" {
+  count = var.enable_cross_account_s3 ? 1 : 0
+  name  = "${var.environment}-cross-account-s3-policy"
+  role  = aws_iam_role.cross_account_s3_role[0].id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject",
+          "s3:ListBucket",
+          "s3:GetObjectVersion",
+          "s3:PutObjectAcl",
+          "s3:GetObjectAcl",
+          "s3:GetBucketLocation",
+          "s3:GetBucketVersioning"
+        ]
+        Resource = concat(
+          var.cross_account_s3_bucket_arns,
+          [for arn in var.cross_account_s3_bucket_arns : "${arn}/*"]
+        )
+      }
+    ]
+  })
+}
+
+# Allow EC2 instances to assume external cross-account roles
+resource "aws_iam_role_policy" "ec2_assume_external_role" {
+  count = var.external_role_arn != "" ? 1 : 0
+  name  = "${var.environment}-ec2-assume-external-role"
+  role  = aws_iam_role.ec2_fastapi_app_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = "sts:AssumeRole"
+        Resource = var.external_role_arn
+        Condition = var.external_role_id != "" ? {
+          StringEquals = {
+            "sts:ExternalId" = var.external_role_id
+          }
+        } : {}
+      }
+    ]
+  })
+}
+
+# Allow EC2 instances to assume the cross-account role (for self-managed cross-account access)
+resource "aws_iam_role_policy" "ec2_assume_cross_account_role" {
+  count = var.enable_cross_account_s3 ? 1 : 0
+  name  = "${var.environment}-ec2-assume-cross-account-role"
+  role  = aws_iam_role.ec2_fastapi_app_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = "sts:AssumeRole"
+        Resource = aws_iam_role.cross_account_s3_role[0].arn
+      }
+    ]
+  })
+}
+
 # S3 access policy for EC2
 resource "aws_iam_role_policy" "ec2_s3_policy" {
   name = "${var.environment}-ec2-s3-policy"
