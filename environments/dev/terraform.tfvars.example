@@ -39,16 +39,11 @@ asg_config = {
 # key_pair_name = "my-ec2-keypair"
 
 # Cross-account S3 Access Configuration
-# Enable this to allow EC2 instances to access S3 buckets in other AWS accounts
-enable_cross_account_s3 = false
+# If you need EC2 instances to assume an external role to access S3 buckets in other AWS accounts,
+# provide the role ARN and optional external ID below
+external_role_arn = ""
+external_role_id  = ""
 
-# List of external S3 bucket ARNs that EC2 instances need to access
-# The cross-account role ARN will need to be added to these buckets' policies
-cross_account_s3_bucket_arns = []
-
-# Example for accessing Source Cooperative bucket:
-# enable_cross_account_s3 = true
-# cross_account_s3_bucket_arns = [
-#   "arn:aws:s3:::us-west-2.opendata.source.coop",
-#   "arn:aws:s3:::us-west-2.opendata.source.coop/ftw/ftw-inference-output/*"
-# ]
+# Example for accessing external S3 buckets via STS AssumeRole:
+# external_role_arn = "arn:aws:iam::123456789012:role/cross-account-s3-access-role"
+# external_role_id  = "unique-external-id-for-security"

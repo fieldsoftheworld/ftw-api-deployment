@@ -48,18 +48,6 @@ variable "sqs_dlq_arn" {
   type        = string
 }
 
-variable "enable_cross_account_s3" {
-  description = "Enable cross-account S3 access role"
-  type        = bool
-  default     = false
-}
-
-variable "cross_account_s3_bucket_arns" {
-  description = "List of external S3 bucket ARNs that this role should have access to"
-  type        = list(string)
-  default     = []
-}
-
 variable "external_role_arn" {
   description = "ARN of an external IAM role to assume (provided by external account owner)"
   type        = string

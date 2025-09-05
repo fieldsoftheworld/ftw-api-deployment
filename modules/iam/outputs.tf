@@ -44,14 +44,3 @@ output "s3_bucket_arn" {
   description = "The S3 bucket ARN that the EC2 role has access to"
   value       = var.s3_bucket_arn
 }
-
-# Cross-account S3 Role Outputs
-output "cross_account_s3_role_arn" {
-  description = "The ARN of the cross-account S3 access role"
-  value       = var.enable_cross_account_s3 ? aws_iam_role.cross_account_s3_role[0].arn : null
-}
-
-output "cross_account_s3_role_name" {
-  description = "The name of the cross-account S3 access role"
-  value       = var.enable_cross_account_s3 ? aws_iam_role.cross_account_s3_role[0].name : null
-}

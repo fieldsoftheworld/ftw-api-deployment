@@ -112,9 +112,7 @@ module "iam" {
   sqs_queue_arn               = module.sqs.task_queue_arn
   sqs_dlq_arn                 = module.sqs.dlq_arn
 
-  # Cross-account S3 access configuration
-  enable_cross_account_s3       = var.enable_cross_account_s3
-  cross_account_s3_bucket_arns = var.cross_account_s3_bucket_arns
+  # External role configuration for cross-account access
   external_role_arn            = var.external_role_arn
   external_role_id             = var.external_role_id
 }
