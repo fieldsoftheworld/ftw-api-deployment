@@ -47,3 +47,15 @@ variable "sqs_dlq_arn" {
   description = "SQS dead letter queue ARN for EC2 access"
   type        = string
 }
+
+variable "external_role_arn" {
+  description = "ARN of an external IAM role to assume (provided by external account owner)"
+  type        = string
+  default     = ""
+}
+
+variable "external_role_id" {
+  description = "External ID required to assume the external role (for additional security)"
+  type        = string
+  default     = ""
+}

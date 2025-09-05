@@ -37,3 +37,13 @@ asg_config = {
 
 # For SSH access (if needed):
 # key_pair_name = "my-ec2-keypair"
+
+# Cross-account S3 Access Configuration
+# If you need EC2 instances to assume an external role to access S3 buckets in other AWS accounts,
+# provide the role ARN and optional external ID below
+external_role_arn = ""
+external_role_id  = ""
+
+# Example for accessing external S3 buckets via STS AssumeRole:
+# external_role_arn = "arn:aws:iam::123456789012:role/cross-account-s3-access-role"
+# external_role_id  = "unique-external-id-for-security"

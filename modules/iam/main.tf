@@ -84,6 +84,30 @@ resource "aws_iam_role_policy" "ec2_cloudwatch_policy" {
   })
 }
 
+# Allow EC2 instances to assume external cross-account roles provided by foreign organizations
+resource "aws_iam_role_policy" "ec2_assume_external_role" {
+  count = var.external_role_arn != "" ? 1 : 0
+  name  = "${var.environment}-ec2-assume-external-role"
+  role  = aws_iam_role.ec2_fastapi_app_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = "sts:AssumeRole"
+        Resource = var.external_role_arn
+        Condition = var.external_role_id != "" ? {
+          StringEquals = {
+            "sts:ExternalId" = var.external_role_id
+          }
+        } : {}
+      }
+    ]
+  })
+}
+
+
 # S3 access policy for EC2
 resource "aws_iam_role_policy" "ec2_s3_policy" {
   name = "${var.environment}-ec2-s3-policy"

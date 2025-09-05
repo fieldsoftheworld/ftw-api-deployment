@@ -112,6 +112,9 @@ module "iam" {
   sqs_queue_arn               = module.sqs.task_queue_arn
   sqs_dlq_arn                 = module.sqs.dlq_arn
 
+  # External role configuration for cross-account access
+  external_role_arn            = var.external_role_arn
+  external_role_id             = var.external_role_id
 }
 
 module "api_gateway" {

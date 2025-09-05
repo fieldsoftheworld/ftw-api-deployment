@@ -195,3 +195,15 @@ variable "custom_domain_name" {
   type        = string
   default     = ""
 }
+
+variable "external_role_arn" {
+  description = "ARN of external IAM role provided by bucket owner for cross-account access"
+  type        = string
+  default     = ""
+}
+
+variable "external_role_id" {
+  description = "External ID required to assume the external role (for additional security)"
+  type        = string
+  default     = ""
+}
