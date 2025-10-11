@@ -10,6 +10,8 @@ Terraform infrastructure as code for FTW API deployment on AWS. Creates a comple
 
 ## Infrastructure Overview
 
+![AWS Architecture Diagram](assets/aws_diagram.png)
+
 This Terraform configuration creates:
 
 - **VPC**: DNS support, hostnames enabled, public/private subnets across 2 AZs
