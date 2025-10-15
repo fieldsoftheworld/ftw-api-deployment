@@ -27,9 +27,9 @@ resource "aws_apigatewayv2_route" "api_routes" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = each.value.route_key
   target    = "integrations/${aws_apigatewayv2_integration.alb_integration.id}"
-  
+
   # Authorization logic - same for all routes, defined once
   authorization_type = var.enable_cloudfront_protection ? "CUSTOM" : "NONE"
-  authorizer_id     = var.enable_cloudfront_protection ? aws_apigatewayv2_authorizer.cloudfront_authorizer.id : null
+  authorizer_id      = var.enable_cloudfront_protection ? aws_apigatewayv2_authorizer.cloudfront_authorizer.id : null
 }
 

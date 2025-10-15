@@ -116,20 +116,20 @@ resource "aws_apigatewayv2_vpc_link" "main" {
 
 # Lambda authorizer for CloudFront secret validation
 resource "aws_apigatewayv2_authorizer" "cloudfront_authorizer" {
-  api_id           = aws_apigatewayv2_api.main.id
-  authorizer_type  = "REQUEST"
-  authorizer_uri   = var.lambda_authorizer_invoke_arn
-  name             = "${var.environment}-cloudfront-authorizer"
-  
+  api_id          = aws_apigatewayv2_api.main.id
+  authorizer_type = "REQUEST"
+  authorizer_uri  = var.lambda_authorizer_invoke_arn
+  name            = "${var.environment}-cloudfront-authorizer"
+
   # Pass all headers to authorizer
   authorizer_payload_format_version = "2.0"
-  
+
   # Enable simple responses for format 2.0 (allows {"isAuthorized": true/false})
   enable_simple_responses = true
-  
+
   # Cache authorization for 5 minutes
   authorizer_result_ttl_in_seconds = 300
-  
+
   # Required for Lambda authorizers
   identity_sources = ["$request.header.x-cloudfront-secret"]
 }

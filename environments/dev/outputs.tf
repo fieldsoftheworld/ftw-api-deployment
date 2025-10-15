@@ -62,7 +62,7 @@ output "embeddings_instance_status" {
     public_ip   = module.ec2.embeddings_elastic_ip
     private_ip  = module.ec2.embeddings_instance_private_ip
     key_name    = module.ec2.embeddings_key_name
-  } : {
+    } : {
     enabled = false
     message = "Embeddings instance is not enabled. Set enable_embeddings_instance = true to create it."
   }

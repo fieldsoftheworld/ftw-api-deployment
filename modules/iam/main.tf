@@ -94,8 +94,8 @@ resource "aws_iam_role_policy" "ec2_assume_external_role" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
-        Action = "sts:AssumeRole"
+        Effect   = "Allow"
+        Action   = "sts:AssumeRole"
         Resource = var.external_role_arn
         Condition = var.external_role_id != "" ? {
           StringEquals = {

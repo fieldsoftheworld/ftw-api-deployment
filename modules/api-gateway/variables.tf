@@ -74,9 +74,9 @@ variable "api_routes" {
   description = "Map of API routes to create"
   type = map(object({
     route_key = string
-   # methods   = list(string)
+    # methods   = list(string)
   }))
-  
+
   default = {
     "root"                  = { route_key = "GET /", methods = ["GET"] }
     "example"               = { route_key = "PUT /example", methods = ["PUT"] }
