@@ -31,5 +31,5 @@ output "cloudfront_certificate_arn" {
 output "route53_name_servers" {
   description = "Route53 name servers for the hosted zone (empty if no custom domain)"
 
-  value       = var.ssl_config.custom_domain_name != "" ? aws_route53_zone.main[0].name_servers : []
+  value = var.ssl_config.custom_domain_name != "" ? aws_route53_zone.main[0].name_servers : []
 }

@@ -113,8 +113,8 @@ module "iam" {
   sqs_dlq_arn                 = module.sqs.dlq_arn
 
   # External role configuration for cross-account access
-  external_role_arn            = var.external_role_arn
-  external_role_id             = var.external_role_id
+  external_role_arn = var.external_role_arn
+  external_role_id  = var.external_role_id
 }
 
 module "api_gateway" {
@@ -168,6 +168,7 @@ module "security_groups" {
   vpc_id                  = module.vpc.vpc_id
   vpc_cidr_block          = module.vpc.vpc_cidr_block
   enable_vpc_endpoints_sg = true
+  enable_embeddings_sg    = var.enable_embeddings_instance
 }
 
 module "alb" {
@@ -202,6 +203,11 @@ module "ec2" {
   instance_type = var.instance_type
   key_pair_name = var.key_pair_name
   asg_config    = var.asg_config
+
+  # Embeddings instance - just enable/disable, all config is in module
+  enable_embeddings_instance    = var.enable_embeddings_instance
+  public_subnet_id              = module.vpc.public_subnet_ids[0]
+  embeddings_security_group_ids = var.enable_embeddings_instance ? [module.security_groups.embeddings_ssh_security_group_id] : []
 }
 # WAF Module - Web Application Firewall for CloudFront
 module "waf" {

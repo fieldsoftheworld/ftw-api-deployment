@@ -75,3 +75,53 @@ variable "fastapi_app_port" {
   type        = number
   default     = 8000
 }
+
+################################################################################
+# EMBEDDINGS INSTANCE VARIABLES
+################################################################################
+
+variable "enable_embeddings_instance" {
+  description = "Whether to create the embeddings EC2 instance"
+  type        = bool
+  default     = false
+}
+
+variable "embeddings_instance_type" {
+  description = "EC2 instance type for embeddings server (internal default)"
+  type        = string
+  default     = "t3.2xlarge"
+
+  validation {
+    condition     = can(regex("^[a-z][0-9][a-z]*\\.[0-9]*[a-z]+$", var.embeddings_instance_type))
+    error_message = "Instance type must be a valid AWS instance type format."
+  }
+}
+
+variable "embeddings_volume_size" {
+  description = "EBS volume size in GB for embeddings instance (internal default)"
+  type        = number
+  default     = 80
+
+  validation {
+    condition     = var.embeddings_volume_size >= 8 && var.embeddings_volume_size <= 16384
+    error_message = "Volume size must be between 8 and 16384 GB."
+  }
+}
+
+variable "public_subnet_id" {
+  description = "Public subnet ID for embeddings instance (passed from vpc module)"
+  type        = string
+  default     = ""
+}
+
+variable "embeddings_security_group_ids" {
+  description = "Security group IDs for embeddings instance (passed from security-groups module)"
+  type        = list(string)
+  default     = []
+}
+
+variable "embeddings_public_key" {
+  description = "SSH public key for embeddings instance (leave empty for auto-generation)"
+  type        = string
+  default     = ""
+}

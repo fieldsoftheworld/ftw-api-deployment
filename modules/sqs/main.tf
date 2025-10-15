@@ -30,7 +30,7 @@ resource "aws_sqs_queue" "task_queue" {
   # Message settings for ML tasks
   visibility_timeout_seconds = var.visibility_timeout
   message_retention_seconds  = var.message_retention_period
-  
+
   # Long polling for efficiency
   receive_wait_time_seconds = 20
 
@@ -58,11 +58,11 @@ resource "aws_sqs_queue_policy" "task_queue_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid    = "DenyInsecureTaskQueue"
-        Effect = "Deny"
-        Principal = "*" 
-        Action = "sqs:*"
-        Resource = aws_sqs_queue.task_queue.arn
+        Sid       = "DenyInsecureTaskQueue"
+        Effect    = "Deny"
+        Principal = "*"
+        Action    = "sqs:*"
+        Resource  = aws_sqs_queue.task_queue.arn
         Condition = {
           Bool = {
             "aws:SecureTransport" = "false"
@@ -70,11 +70,11 @@ resource "aws_sqs_queue_policy" "task_queue_policy" {
         }
       },
       {
-        Sid    = "DenyInsecureDLQ"
-        Effect = "Deny"
-        Principal = "*" 
-        Action = "sqs:*"
-        Resource = aws_sqs_queue.task_dlq.arn
+        Sid       = "DenyInsecureDLQ"
+        Effect    = "Deny"
+        Principal = "*"
+        Action    = "sqs:*"
+        Resource  = aws_sqs_queue.task_dlq.arn
         Condition = {
           Bool = {
             "aws:SecureTransport" = "false"

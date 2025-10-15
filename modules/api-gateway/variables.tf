@@ -74,9 +74,9 @@ variable "api_routes" {
   description = "Map of API routes to create"
   type = map(object({
     route_key = string
-   # methods   = list(string)
+    # methods   = list(string)
   }))
-  
+
   default = {
     "root"                  = { route_key = "GET /", methods = ["GET"] }
     "example"               = { route_key = "PUT /example", methods = ["PUT"] }
@@ -89,5 +89,7 @@ variable "api_routes" {
     "inference"             = { route_key = "PUT /projects/{project_id}/inference", methods = ["PUT"] }
     "polygonization"        = { route_key = "PUT /projects/{project_id}/polygons", methods = ["PUT"] }
     "get_task_status"       = { route_key = "GET /projects/{project_id}/tasks/{task_id}", methods = ["GET"] }
+    "get_inference_results" = { route_key = "GET /projects/{project_id}/inference", methods = ["GET"] }
+    "scene_selection"       = { route_key = "POST /scene-selection", methods = ["POST"] }
   }
 }

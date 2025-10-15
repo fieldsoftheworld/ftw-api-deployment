@@ -6,13 +6,13 @@ variable "environment" {
 variable "visibility_timeout" {
   description = "Message visibility timeout in seconds (for long-running ML tasks)"
   type        = number
-  default     = 900  # 15 minutes for inference/polygonize tasks
+  default     = 900 # 15 minutes for inference/polygonize tasks
 }
 
 variable "message_retention_period" {
   description = "How long to keep messages in queue (seconds)"
   type        = number
-  default     = 1209600  # 14 days
+  default     = 1209600 # 14 days
 }
 
 variable "max_receive_count" {

@@ -52,12 +52,12 @@ resource "aws_iam_role_policy_attachment" "authorizer_basic" {
 
 # Lambda function for CloudFront secret validation
 resource "aws_lambda_function" "cloudfront_authorizer" {
-  filename         = data.archive_file.authorizer_zip.output_path
-  function_name    = "${var.environment}-cloudfront-authorizer"
-  role            = aws_iam_role.authorizer_role.arn
-  handler         = "index.lambda_handler"
-  runtime         = "python3.13"
-  timeout         = 30
+  filename      = data.archive_file.authorizer_zip.output_path
+  function_name = "${var.environment}-cloudfront-authorizer"
+  role          = aws_iam_role.authorizer_role.arn
+  handler       = "index.lambda_handler"
+  runtime       = "python3.13"
+  timeout       = 30
 
   source_code_hash = data.archive_file.authorizer_zip.output_base64sha256
 
