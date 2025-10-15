@@ -29,3 +29,9 @@ variable "enable_vpc_endpoints_sg" {
   type        = bool
   default     = true
 }
+
+variable "enable_embeddings_sg" {
+  description = "Create security group for embeddings instance"
+  type        = bool
+  default     = false
+}

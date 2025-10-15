@@ -207,3 +207,10 @@ variable "external_role_id" {
   type        = string
   default     = ""
 }
+
+# Single control variable for embeddings instance
+variable "enable_embeddings_instance" {
+  description = "Whether to create the embeddings EC2 instance"
+  type        = bool
+  default     = false
+}

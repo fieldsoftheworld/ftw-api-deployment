@@ -4,6 +4,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
+    }
   }
 }
 
@@ -136,4 +140,117 @@ resource "aws_autoscaling_group" "fastapi_app" {
   lifecycle {
     create_before_destroy = true
   }
+}
+
+################################################################################
+# EMBEDDINGS MODEL EC2 INSTANCE
+################################################################################
+
+# Data source for Ubuntu LTS AMI
+data "aws_ami" "ubuntu_lts" {
+  most_recent = true
+  owners      = ["099720109477"] # Canonical
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  filter {
+    name   = "state"
+    values = ["available"]
+  }
+
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+}
+
+# Generate SSH key pair if not provided
+resource "tls_private_key" "embeddings_key" {
+  count     = var.enable_embeddings_instance && var.embeddings_public_key == "" ? 1 : 0
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+# Create SSH Key Pair for embeddings instance
+resource "aws_key_pair" "embeddings_key" {
+  count      = var.enable_embeddings_instance ? 1 : 0
+  key_name   = "${var.environment}-embeddings-key"
+  public_key = var.embeddings_public_key != "" ? var.embeddings_public_key : tls_private_key.embeddings_key[0].public_key_openssh
+
+  tags = {
+    Name        = "${var.environment}-embeddings-key"
+    Environment = var.environment
+    Purpose     = "embeddings-instance-ssh"
+  }
+}
+
+# Elastic IP for embeddings instance
+resource "aws_eip" "embeddings_eip" {
+  count  = var.enable_embeddings_instance ? 1 : 0
+  domain = "vpc"
+
+  tags = {
+    Name        = "${var.environment}-embeddings-eip"
+    Environment = var.environment
+    Purpose     = "embeddings-instance"
+  }
+}
+
+# Embeddings EC2 Instance
+resource "aws_instance" "embeddings" {
+  count                  = var.enable_embeddings_instance ? 1 : 0
+  ami                    = data.aws_ami.ubuntu_lts.id
+  instance_type          = var.embeddings_instance_type
+  subnet_id              = var.public_subnet_id
+  vpc_security_group_ids = var.embeddings_security_group_ids
+  key_name               = aws_key_pair.embeddings_key[0].key_name
+  iam_instance_profile   = var.instance_profile_name
+
+  # Enable auto-assign public IP
+  associate_public_ip_address = true
+
+  # Root block device
+  root_block_device {
+    volume_size           = var.embeddings_volume_size
+    volume_type           = "gp3"
+    delete_on_termination = true
+    encrypted             = true
+  }
+
+  # Enable detailed monitoring
+  monitoring = true
+
+  # Enable instance metadata service v2
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 2
+  }
+
+  tags = {
+    Name        = "${var.environment}-embeddings-server"
+    Purpose     = "embeddings-model"
+    Owner       = "ml-team"
+    Environment = var.environment
+    CostCenter  = "ml-infrastructure"
+  }
+
+  lifecycle {
+    ignore_changes = [ami]
+  }
+}
+
+# Associate Elastic IP with embeddings instance
+resource "aws_eip_association" "embeddings_eip_assoc" {
+  count         = var.enable_embeddings_instance ? 1 : 0
+  instance_id   = aws_instance.embeddings[0].id
+  allocation_id = aws_eip.embeddings_eip[0].id
 }

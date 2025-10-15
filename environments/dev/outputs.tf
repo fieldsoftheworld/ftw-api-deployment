@@ -37,3 +37,40 @@ output "ami_id" {
   description = "The AMI ID used by the EC2 instances"
   value       = module.ec2.ami_id
 }
+
+# Embeddings Instance Outputs
+output "embeddings_instance_id" {
+  description = "ID of the embeddings EC2 instance"
+  value       = module.ec2.embeddings_instance_id
+}
+
+output "embeddings_elastic_ip" {
+  description = "Elastic IP address of the embeddings instance"
+  value       = module.ec2.embeddings_elastic_ip
+}
+
+output "embeddings_ssh_connection" {
+  description = "SSH connection command for the embeddings instance"
+  value       = module.ec2.embeddings_ssh_connection
+}
+
+output "embeddings_instance_status" {
+  description = "Status information for embeddings instance"
+  value = var.enable_embeddings_instance ? {
+    enabled     = true
+    instance_id = module.ec2.embeddings_instance_id
+    public_ip   = module.ec2.embeddings_elastic_ip
+    private_ip  = module.ec2.embeddings_instance_private_ip
+    key_name    = module.ec2.embeddings_key_name
+  } : {
+    enabled = false
+    message = "Embeddings instance is not enabled. Set enable_embeddings_instance = true to create it."
+  }
+}
+
+# Sensitive output for private key
+output "embeddings_private_key" {
+  description = "Private SSH key for embeddings instance (only if auto-generated - save this securely!)"
+  value       = module.ec2.embeddings_private_key_pem
+  sensitive   = true
+}

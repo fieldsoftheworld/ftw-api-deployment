@@ -46,3 +46,14 @@ output "fastapi_app_port" {
   description = "The port configured for the FastAPI application"
   value       = var.fastapi_app_port
 }
+
+# Embeddings Instance Security Group outputs (conditional)
+output "embeddings_ssh_security_group_id" {
+  description = "The ID of the embeddings SSH security group"
+  value       = var.enable_embeddings_sg ? aws_security_group.embeddings_ssh[0].id : null
+}
+
+output "embeddings_ssh_security_group_arn" {
+  description = "The ARN of the embeddings SSH security group"
+  value       = var.enable_embeddings_sg ? aws_security_group.embeddings_ssh[0].arn : null
+}

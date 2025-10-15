@@ -64,9 +64,9 @@ resource "aws_cloudfront_distribution" "api_distribution" {
     allowed_methods            = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
     cached_methods             = ["GET", "HEAD"]
     compress                   = true
-    cache_policy_id            = data.aws_cloudfront_cache_policy.caching_disabled.id
-    origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.all_viewer_except_host.id
-    response_headers_policy_id = data.aws_cloudfront_response_headers_policy.simple_cors.id
+    cache_policy_id            = "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"  # Managed-CachingDisabled
+    origin_request_policy_id   = "b689b0a8-53d0-40ab-baf2-68738e2966ac"  # Managed-AllViewerExceptHostHeader
+    response_headers_policy_id = "60669652-455b-4ae9-85a4-c4c02393f86c"  # Managed-SimpleCORS
   }
 
   # Geographic restrictions (none for now)
