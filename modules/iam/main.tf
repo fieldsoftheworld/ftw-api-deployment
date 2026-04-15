@@ -169,7 +169,9 @@ resource "aws_iam_role_policy" "ec2_dynamodb_policy" {
           var.images_table_arn,
           "${var.images_table_arn}/*",
           var.inference_results_table_arn,
-          "${var.inference_results_table_arn}/*"
+          "${var.inference_results_table_arn}/*",
+          var.feedback_table_arn,
+          "${var.feedback_table_arn}/*"
         ]
       }
     ]

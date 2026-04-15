@@ -55,3 +55,19 @@ output "vpc_endpoint_dns_names" {
   description = "DNS names of the DynamoDB VPC endpoint"
   value       = aws_vpc_endpoint.dynamodb.dns_entry[*].dns_name
 }
+
+# Feedback Table Outputs
+output "feedback_table_name" {
+  description = "Name of the Feedback DynamoDB table"
+  value       = aws_dynamodb_table.feedback.name
+}
+
+output "feedback_table_arn" {
+  description = "ARN of the Feedback DynamoDB table"
+  value       = aws_dynamodb_table.feedback.arn
+}
+
+output "feedback_table_id" {
+  description = "ID of the Feedback DynamoDB table"
+  value       = aws_dynamodb_table.feedback.id
+}

@@ -109,6 +109,7 @@ module "iam" {
   projects_table_arn          = module.dynamodb.projects_table_arn
   images_table_arn            = module.dynamodb.images_table_arn
   inference_results_table_arn = module.dynamodb.inference_results_table_arn
+  feedback_table_arn          = module.dynamodb.feedback_table_arn
   sqs_queue_arn               = module.sqs.task_queue_arn
   sqs_dlq_arn                 = module.sqs.dlq_arn
 
