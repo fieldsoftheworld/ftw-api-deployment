@@ -39,6 +39,12 @@ variable "inference_results_table_arn" {
   description = "Inference Results DynamoDB table ARN for EC2 access"
   type        = string
 }
+
+variable "feedback_table_arn" {
+  description = "Feedback DynamoDB table ARN for EC2 access"
+  type        = string
+}
+
 variable "sqs_queue_arn" {
   description = "SQS queue ARN for EC2 access"
   type        = string

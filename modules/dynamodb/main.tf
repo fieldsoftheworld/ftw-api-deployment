@@ -163,6 +163,59 @@ resource "aws_dynamodb_table" "inference_results" {
   )
 }
 
+# Feedback table - stores tile ratings, detailed feedback, and contribution forms
+resource "aws_dynamodb_table" "feedback" {
+  name           = "${var.environment}-ftw-feedback"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = var.read_capacity
+  write_capacity = var.write_capacity
+  hash_key       = "id"
+
+  attribute {
+    name = "id"
+    type = "S"
+  }
+
+  attribute {
+    name = "feedback_type"
+    type = "S"
+  }
+
+  attribute {
+    name = "created_at"
+    type = "S"
+  }
+
+  # GSI for filtering by feedback_type and sorting by created_at
+  global_secondary_index {
+    name            = "feedback-type-index"
+    hash_key        = "feedback_type"
+    range_key       = "created_at"
+    read_capacity   = var.gsi_read_capacity
+    write_capacity  = var.gsi_write_capacity
+    projection_type = "ALL"
+  }
+
+  # Enable point-in-time recovery
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  # Server-side encryption
+  server_side_encryption {
+    enabled = true
+  }
+
+  tags = merge(
+    var.tags,
+    {
+      Name        = "${var.environment}-ftw-feedback"
+      Environment = var.environment
+      Purpose     = "user-feedback-storage"
+    }
+  )
+}
+
 # VPC ENDPOINT FOR DYNAMODB ACCESS
 
 resource "aws_vpc_endpoint" "dynamodb" {
@@ -193,7 +246,9 @@ resource "aws_vpc_endpoint" "dynamodb" {
           aws_dynamodb_table.images.arn,
           "${aws_dynamodb_table.images.arn}/*",
           aws_dynamodb_table.inference_results.arn,
-          "${aws_dynamodb_table.inference_results.arn}/*"
+          "${aws_dynamodb_table.inference_results.arn}/*",
+          aws_dynamodb_table.feedback.arn,
+          "${aws_dynamodb_table.feedback.arn}/*"
         ]
       }
     ]
