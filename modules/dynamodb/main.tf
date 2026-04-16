@@ -181,10 +181,16 @@ resource "aws_dynamodb_table" "feedback" {
     type = "S"
   }
 
-  # GSI for filtering by feedback_type (avoids full table scan on area-summary)
+  attribute {
+    name = "created_at"
+    type = "S"
+  }
+
+  # GSI for filtering by feedback_type and sorting by created_at
   global_secondary_index {
     name            = "feedback-type-index"
     hash_key        = "feedback_type"
+    range_key       = "created_at"
     read_capacity   = var.gsi_read_capacity
     write_capacity  = var.gsi_write_capacity
     projection_type = "ALL"
