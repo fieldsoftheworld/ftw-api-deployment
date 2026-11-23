@@ -158,8 +158,64 @@ fi
 #############################################
 echo "Deploying FTW inference API..."
 
+# Boot the ref last deployed by GitHub Actions (SSM parameter), falling back to main.
+DEPLOYED_SHA_PARAMETER="${DEPLOYED_SHA_PARAMETER}"
+AWS_REGION_NAME="${AWS_REGION}"
+REF="main"
+
+if [ -n "$DEPLOYED_SHA_PARAMETER" ]; then
+    # The DLAMI ships the AWS CLI; look in the usual places and install the snap if missing.
+    AWS_BIN="$(command -v aws || true)"
+    for candidate in /usr/local/bin/aws /usr/bin/aws /snap/bin/aws; do
+        if [ -z "$AWS_BIN" ] && [ -x "$candidate" ]; then
+            AWS_BIN="$candidate"
+        fi
+    done
+    if [ -z "$AWS_BIN" ] && command -v snap &> /dev/null; then
+        echo "AWS CLI not found, installing snap aws-cli..."
+        if snap install aws-cli --classic; then
+            AWS_BIN="/snap/bin/aws"
+        fi
+    fi
+
+    if [ -n "$AWS_BIN" ]; then
+        FETCHED_REF="$("$AWS_BIN" ssm get-parameter --region "$AWS_REGION_NAME" \
+            --name "$DEPLOYED_SHA_PARAMETER" --query Parameter.Value --output text 2>/tmp/deployed-sha.err)" || {
+            echo "WARNING: could not read $DEPLOYED_SHA_PARAMETER: $(cat /tmp/deployed-sha.err)"
+            FETCHED_REF=""
+        }
+        # Accept a full commit SHA or a plain branch name; anything else falls back to main.
+        REF_PATTERN='^([0-9a-f]{40}|[A-Za-z0-9._/-]+)$'
+        if [[ "$FETCHED_REF" =~ $REF_PATTERN ]]; then
+            REF="$FETCHED_REF"
+        elif [ -n "$FETCHED_REF" ]; then
+            echo "WARNING: ignoring unexpected value in $DEPLOYED_SHA_PARAMETER: $FETCHED_REF"
+        fi
+    else
+        echo "WARNING: AWS CLI unavailable, deploying main"
+    fi
+fi
+
+# A SHA is only recorded by the GitHub Actions deploy, whose deploy.sh supports --ref.
+# Branch names use -b/--branch, which every deploy.sh version accepts.
+SHA_PATTERN='^[0-9a-f]{40}$'
+if [[ "$REF" =~ $SHA_PATTERN ]]; then
+    REF_ARG="--ref"
+else
+    REF_ARG="--branch"
+fi
+
+echo "Deploying ref: $REF"
+DEPLOY_SCRIPT_URL="https://raw.githubusercontent.com/fieldsoftheworld/ftw-inference-api/$REF/deploy.sh"
+if ! sudo -u ubuntu curl -fsSL "$DEPLOY_SCRIPT_URL" -o /home/ubuntu/deploy.sh; then
+    echo "WARNING: could not download deploy.sh for $REF, falling back to main"
+    REF="main"
+    REF_ARG="--branch"
+    sudo -u ubuntu curl -fsSL "https://raw.githubusercontent.com/fieldsoftheworld/ftw-inference-api/main/deploy.sh" -o /home/ubuntu/deploy.sh
+fi
+
 # Run the deploy script as ubuntu user
-sudo -u ubuntu bash -c "cd /home/ubuntu && curl -L https://raw.githubusercontent.com/fieldsoftheworld/ftw-inference-api/main/deploy.sh | bash"
+sudo -u ubuntu bash -c "cd /home/ubuntu && bash ./deploy.sh $REF_ARG '$REF'"
 
 # Wait for service to be ready (up to 5 minutes)
 for i in {1..60}; do

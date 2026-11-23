@@ -12,6 +12,8 @@ terraform {
 }
 
 
+data "aws_region" "current" {}
+
 # Data source for Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 24.04)
 # This will always fetch the latest version automatically
 data "aws_ami" "deep_learning_gpu" {
@@ -76,8 +78,10 @@ resource "aws_launch_template" "fastapi_app" {
 
   # Simplified user data script with integrated hardening
   user_data = base64encode(templatefile("${path.module}/scripts/user-data.sh", {
-    ENVIRONMENT      = var.environment
-    FASTAPI_APP_PORT = var.fastapi_app_port
+    ENVIRONMENT            = var.environment
+    FASTAPI_APP_PORT       = var.fastapi_app_port
+    DEPLOYED_SHA_PARAMETER = var.deployed_sha_parameter_name
+    AWS_REGION             = data.aws_region.current.name
   }))
 
   tag_specifications {

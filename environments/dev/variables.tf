@@ -214,3 +214,8 @@ variable "enable_embeddings_instance" {
   type        = bool
   default     = false
 }
+variable "create_github_oidc_provider" {
+  description = "Create the account-wide GitHub Actions OIDC provider. Set false if token.actions.githubusercontent.com already exists in the account."
+  type        = bool
+  default     = true
+}

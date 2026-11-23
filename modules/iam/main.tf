@@ -274,3 +274,27 @@ resource "aws_iam_role_policy" "ec2_secrets_manager_policy" {
     ]
   })
 }
+
+data "aws_caller_identity" "current" {}
+
+# Read the deployed ftw-inference-api SHA at boot (user-data section 5).
+# AmazonSSMManagedInstanceCore already allows ssm:GetParameter on "*"; this grant keeps the
+# dependency explicit if that managed policy is ever replaced.
+# Deploy command output to /ftw/<env>/deploy is covered by ec2_cloudwatch_policy and
+# CloudWatchAgentServerPolicy (logs:CreateLogStream / logs:PutLogEvents).
+resource "aws_iam_role_policy" "ec2_deployed_sha_parameter_policy" {
+  count = var.deployed_sha_parameter_name != "" ? 1 : 0
+  name  = "${var.environment}-ec2-deployed-sha-parameter-policy"
+  role  = aws_iam_role.ec2_fastapi_app_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = "ssm:GetParameter"
+        Resource = "arn:aws:ssm:${var.region}:${data.aws_caller_identity.current.account_id}:parameter${var.deployed_sha_parameter_name}"
+      }
+    ]
+  })
+}

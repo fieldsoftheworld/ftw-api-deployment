@@ -65,3 +65,8 @@ variable "external_role_id" {
   type        = string
   default     = ""
 }
+variable "deployed_sha_parameter_name" {
+  description = "Name of the SSM parameter holding the deployed ftw-inference-api SHA (e.g. /ftw/dev/api/deployed-sha); instances read it at boot. Empty to skip the grant."
+  type        = string
+  default     = ""
+}

@@ -125,3 +125,8 @@ variable "embeddings_public_key" {
   type        = string
   default     = ""
 }
+variable "deployed_sha_parameter_name" {
+  description = "SSM parameter holding the ftw-inference-api ref to deploy at boot (written by the GitHub Actions deploy). Empty deploys main."
+  type        = string
+  default     = ""
+}
