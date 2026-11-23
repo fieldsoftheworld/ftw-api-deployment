@@ -91,5 +91,9 @@ variable "api_routes" {
     "get_task_status"       = { route_key = "GET /projects/{project_id}/tasks/{task_id}", methods = ["GET"] }
     "get_inference_results" = { route_key = "GET /projects/{project_id}/inference", methods = ["GET"] }
     "scene_selection"       = { route_key = "POST /scene-selection", methods = ["POST"] }
+    "feedback_tile_rating"  = { route_key = "POST /feedback/rating", methods = ["POST"] }
+    "feedback_tell_us_more" = { route_key = "POST /feedback/tell-us-more", methods = ["POST"] }
+    "feedback_contribute"   = { route_key = "POST /feedback/contribute", methods = ["POST"] }
+    "feedback_area_summary" = { route_key = "GET /feedback/area-summary", methods = ["GET"] }
   }
 }
