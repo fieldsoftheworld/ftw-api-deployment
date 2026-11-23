@@ -54,6 +54,7 @@ With the default VPC CIDR block of `10.0.0.0/16`:
 │   ├── certificate-manager/  # SSL certificates and Route53
 │   ├── s3/                   # S3 storage and VPC endpoint
 │   ├── iam/                  # IAM roles and policies
+│   ├── github-deploy/        # GitHub Actions OIDC role + SSM deploy document
 │   └── security-groups/      # Security group rules
 └── bootstrap/
     └── bootstrap-s3.sh       # S3 backend setup script
@@ -123,6 +124,43 @@ aws ec2 describe-instances --filters "Name=tag:Environment,Values=dev" --query '
 aws ssm start-session --target i-1234567890abcdef0
 ```
 
+### Deploying ftw-inference-api
+
+Merges to `main` in ftw-inference-api deploy automatically from GitHub Actions. The
+`modules/github-deploy` module provides:
+
+- A GitHub OIDC provider and the role `dev-ftw-inference-api-deploy`. Only workflows on
+  `refs/heads/main` of `fieldsoftheworld/ftw-inference-api` can assume it.
+- The SSM Command document `ftw-dev-deploy-api` (single `sha` parameter). It checks out
+  that exact SHA in `~/ftw-inference-api` and runs `scripts/update.sh`, which syncs
+  dependencies, restarts the service, and health-checks it. The role can run only this
+  document, and only on instances tagged `Purpose=fastapi-app` and `Environment=dev`.
+- The SSM parameter `/ftw/dev/api/deployed-sha`. The workflow writes the deployed SHA here,
+  and user data reads it at boot, so new instances start at the deployed SHA instead of
+  the head of `main`. The initial value is `main`; Terraform ignores later changes.
+- The CloudWatch log group `/ftw/dev/deploy` (30-day retention) for command output.
+
+One-time setup after `terraform apply`:
+
+```bash
+# Set the role ARN as a repo variable (not a secret)
+gh variable set AWS_DEPLOY_ROLE_ARN --repo fieldsoftheworld/ftw-inference-api \
+  --body "$(terraform output -raw deploy_role_arn)"
+```
+
+An AWS account can have only one OIDC provider for `token.actions.githubusercontent.com`.
+If it already exists, set `create_github_oidc_provider = false` and the module looks it up.
+
+To roll back, run the ftw-inference-api deploy workflow manually (`workflow_dispatch`) with an
+older SHA from `main`. To check what a running instance would boot:
+
+```bash
+aws ssm get-parameter --name /ftw/dev/api/deployed-sha --query Parameter.Value --output text
+```
+
+Changing `user-data.sh` creates a new launch template version. The ASG uses `$Latest`, so
+the change only applies to instances launched later; it does not start an instance refresh.
+
 ### Enabling Auto Scaling
 
 To enable auto scaling for load testing:
@@ -155,6 +193,10 @@ Key outputs after deployment:
 - `autoscaling_group_name` - ASG name for management
 - `launch_template_id` - Launch template identifier
 - `ami_id` - AMI used by EC2 instances
+- `deploy_role_arn` - Role for the ftw-inference-api deploy workflow (`AWS_DEPLOY_ROLE_ARN`)
+- `deploy_document_name` - SSM document the deploy workflow runs
+- `deployed_sha_parameter_name` - SSM parameter holding the deployed SHA
+- `deploy_log_group_name` - CloudWatch log group for deploy output
 
 ## Clean Up
 

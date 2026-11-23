@@ -51,3 +51,6 @@ external_role_id  = "tge"
 # Embedding EC2 instance
 # To enable the embeddings EC2 instance (t3.2xlarge with 80GB storage):
 # enable_embeddings_instance = true
+# GitHub Actions deploy: set false if the account already has the
+# token.actions.githubusercontent.com OIDC provider (aws iam list-open-id-connect-providers)
+create_github_oidc_provider = true

@@ -116,6 +116,9 @@ module "iam" {
   # External role configuration for cross-account access
   external_role_arn = var.external_role_arn
   external_role_id  = var.external_role_id
+
+  # Instances read the deployed API SHA at boot
+  deployed_sha_parameter_name = module.github_deploy.deployed_sha_parameter_name
 }
 
 module "api_gateway" {
@@ -209,6 +212,9 @@ module "ec2" {
   enable_embeddings_instance    = var.enable_embeddings_instance
   public_subnet_id              = module.vpc.public_subnet_ids[0]
   embeddings_security_group_ids = var.enable_embeddings_instance ? [module.security_groups.embeddings_ssh_security_group_id] : []
+
+  # Boot the API at the SHA last deployed by GitHub Actions
+  deployed_sha_parameter_name = module.github_deploy.deployed_sha_parameter_name
 }
 # WAF Module - Web Application Firewall for CloudFront
 module "waf" {
@@ -268,3 +274,15 @@ module "sqs" {
   }
 }
 
+# GitHub Actions deploys of ftw-inference-api (OIDC role + SSM Run Command)
+module "github_deploy" {
+  source = "../../modules/github-deploy"
+
+  environment          = var.environment
+  create_oidc_provider = var.create_github_oidc_provider
+
+  tags = {
+    Environment = var.environment
+    Project     = "fields-of-the-world"
+  }
+}

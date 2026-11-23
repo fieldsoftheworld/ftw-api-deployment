@@ -74,3 +74,23 @@ output "embeddings_private_key" {
   value       = module.ec2.embeddings_private_key_pem
   sensitive   = true
 }
+# GitHub Actions deploy outputs
+output "deploy_role_arn" {
+  description = "IAM role for the ftw-inference-api deploy workflow (GitHub repo variable AWS_DEPLOY_ROLE_ARN)"
+  value       = module.github_deploy.deploy_role_arn
+}
+
+output "deploy_document_name" {
+  description = "SSM Command document run by the deploy workflow"
+  value       = module.github_deploy.deploy_document_name
+}
+
+output "deployed_sha_parameter_name" {
+  description = "SSM parameter holding the last deployed ftw-inference-api SHA"
+  value       = module.github_deploy.deployed_sha_parameter_name
+}
+
+output "deploy_log_group_name" {
+  description = "CloudWatch log group for deploy command output"
+  value       = module.github_deploy.deploy_log_group_name
+}
